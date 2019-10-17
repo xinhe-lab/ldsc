@@ -1,6 +1,6 @@
 #!/bin/bash
 ​
-source activate ldsc
+conda activate ldsc
 ​
 chr=$(seq 22)
 ​
