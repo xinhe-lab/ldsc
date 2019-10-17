@@ -24,10 +24,10 @@ def make_annot_files(args, bed_for_annot):
     bimbed = BedTool(iter_bim)
     annotbed = bimbed.intersect(bed_for_annot)
     bp = [x.start for x in annotbed]
-    df_int = pd.DataFrame({'BP': bp, 'ANNOT':1})
+    df_int = pd.DataFrame({'BP': bp, args.annot_name:1})
     df_annot = pd.merge(df_bim, df_int, how='left', on='BP')
     df_annot.fillna(0, inplace=True)
-    df_annot = df_annot[['ANNOT']].astype(int)
+    df_annot = df_annot[[args.annot_name]].astype(int)
     if args.annot_file.endswith('.gz'):
         with gzip.open(args.annot_file, 'wb') as f:
             df_annot.to_csv(f, sep = "\t", index = False)
@@ -43,6 +43,7 @@ if __name__ == '__main__':
     parser.add_argument('--nomerge', action='store_true', default=False, help='don\'t merge the bed file; make an annot file wi    th values proportional to the number of intervals in the bedfile overlapping the SNP.')
     parser.add_argument('--bimfile', type=str, help='plink bim file for the dataset you will use to compute LD scores.')
     parser.add_argument('--annot-file', type=str, help='the name of the annot file to output.')
+    parser.add_argument('--annot-name', type=str, help='the name/identifier of the annotation.')
 
     args = parser.parse_args()
 
