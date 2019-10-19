@@ -1,0 +1,10 @@
+configfile:
+    'config.yaml'
+
+
+include: "ldsc_snakefile"
+
+
+rule all:
+    input:
+        expand(config["L2"] +"{pref}.{chrom}.l2.M",pref="atac-seq-reproducible-ctr-ATAC",chrom=19)
