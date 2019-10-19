@@ -1,10 +1,13 @@
+
+
 configfile:
     'config.yaml'
 
 
-include: "ldsc_snakefile"
-
+#include: "ldsc_snakefile"
+include: "gwas_snakefile"
 
 rule all:
     input:
-        expand(config["L2"] +"{pref}.{chrom}.l2.M",pref="atac-seq-reproducible-ctr-ATAC",chrom=19)
+        config['DL_DIR'] +"snp151.txt"
+        # expand(config["L2"] +"{pref}.{chrom}.l2.M",pref="atac-seq-reproducible-ctr-ATAC",chrom=19)

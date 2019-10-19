@@ -84,3 +84,5 @@ docs/_build/
 # sublime text
 *.idea*
 *sublime*
+.Rproj.user
+snakemake/config.yaml

@@ -1,0 +1,15 @@
+
+rule get_snp151:
+    output:
+        config['DL_DIR'] +"snp151.txt.gz"
+    shell:
+        "wget http://hgdownload.cse.ucsc.edu/goldenpath/hg19/database/snp151.txt.gz -O {output}"
+
+
+rule flat_snp151:
+    input:
+        config['DL_DIR'] +"snp151.txt.gz"
+    output:
+        config['DL_DIR'] +"snp151.txt"
+    shell:
+        "gzip -cd {input} >{output}"
