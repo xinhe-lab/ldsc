@@ -1,74 +1,156 @@
-rule ldsc_trait_chunk:
-    input:
-        evdf=expand(config["EVD_DIR"]+"{{pop_a}}/{{pop_b}}/chr{chrom}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}.h5",chrom=genome_chr)
+
+
+rule get_plinkfiles:
     output:
-        outf =expand(config["LDSC_LD"]+"{{pop_a}}_{{pop_b}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_chr{chri}/{chrom}.l2.ldscore.gz",chri=chrom_int,chrom=range(1,23)),
-        soutf=expand(config["LDSC_LD"]+"{{pop_a}}_{{pop_b}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_chr{chri}/{chrom}.l2.M_5_50",chri=chrom_int,chrom=range(1,23))
-    script:
-        "../scripts/ldsc_trait_chunk.R"        
+        temp(config['DL_DIR'] +"1000G_Phase1_plinkfiles.tgz")
+    shell:
+        "wget https://data.broadinstitute.org/alkesgroup/LDSCORE/1000G_Phase1_plinkfiles.tgz -O {output}"
+
+rule get_hm3snplist:
+    output:
+        temp(config['DL_DIR'] +"hapmap3_snps.tgz")
+    shell:
+        "wget https://data.broadinstitute.org/alkesgroup/LDSCORE/hapmap3_snps.tgz -O {output}"
+
+
+rule gunzip_hm3:
+    input:
+        config['DL_DIR'] +"hapmap3_snps.tgz"
+    output:
+        expand(config['1KG']+"hapmap3_snps"+"hm.{chrom}.snp",chrom=range(1,23))
+
+rule gunzip_plinkfiles:
+    input:
+        config['DL_DIR'] +"1000G_Phase1_plinkfiles.tgz"
+    output:
+        fam_files = expand(config['1KG'] +"1000G_plinkfiles/1000G.mac5eur.{chrom}.fam",chrom=range(1,23)),
+        bim_files = expand(config['1KG'] +"1000G_plinkfiles/1000G.mac5eur.{chrom}.bim",chrom=range(1,23)),
+        bed_files = expand(config['1KG'] +"1000G_plinkfiles/1000G.mac5eur.{chrom}.bed",chrom=range(1,23))
+    params:
+        KG_DIR=config['1KG']
+    shell:
+        '''tar -xvzf {input} -C {params.KG_DIR}'''
+
+
+rule unzip_annot:
+    input:
+        config['BED_DIR'] + "{annot}.bed.gz"
+    output:
+        temp(config['BED_DIR'] + "{annot}.bed")
+    shell:
+        '''gzip -cd {input} > {output}'''
+
+
+rule make_annot:
+    input:
+        anno_bed=config['BED_DIR'] +"{annot}.bed",
+        bim=config['1KG'] + "1000G_plinkfiles/1000G.mac5eur.{chrom}.bim"
+    output:
+        annot = config['ANNODIR'] +"{annot}/{annot}.{chrom}.annot.gz"
+    params:
+        anno_name='{annot}'
+    conda:
+        "../envs/ldsc.yml"
+    shell:
+        '''python2 ../make_annot.py --bed-file {input.anno_bed} --bimfile {input.bim} --annot-file {output.annot}'''
+
+
+rule cmp_ldsc:
+    input:
+        anno_bed=config['ANNODIR'] +"{annot}/{annot}.{chrom}.annot.gz",
+        bim=config['1KG'] + "1000G_plinkfiles/1000G.mac5eur.{chrom}.bim",
+        bed=config['1KG'] + "1000G_plinkfiles/1000G.mac5eur.{chrom}.bed",
+        fam=config['1KG'] + "1000G_plinkfiles/1000G.mac5eur.{chrom}.fam"
+    output:
+        tempf=temp(config['L2']+"{annot}.{chrom}.log"),
+        l2=config['L2']+"{annot}.{chrom}.l2.M",
+        l2M_50=config['L2']+"{annot}.{chrom}.l2.M_5_50",
+        l2gz=config['L2']+"{annot}.{chrom}.l2.ldscore.gz"
+    params:
+        plink=config['1KG'] + "1000G_plinkfiles/1000G.mac5eur.{chrom}",
+        odir=config['L2']+"{annot}.{chrom}"
+    conda:
+        "../envs/ldsc.yml"
+    shell:
+        """python2 ../ldsc.py --l2 --bfile {params.plink} --ld-wind-cm 1 --annot {input.anno_bed} --thin-annot --out {params.odir} """
+
+
+rule run_ldsc:
+
+
+
+
+
+
+# rule ldsc_trait_chunk:
+#     input:
+#         evdf=expand(config["EVD_DIR"]+"{{pop_a}}/{{pop_b}}/chr{chrom}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}.h5",chrom=genome_chr)
+#     output:
+#         outf =expand(config["LDSC_LD"]+"{{pop_a}}_{{pop_b}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_chr{chri}/{chrom}.l2.ldscore.gz",chri=chrom_int,chrom=range(1,23)),
+#         soutf=expand(config["LDSC_LD"]+"{{pop_a}}_{{pop_b}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_chr{chri}/{chrom}.l2.M_5_50",chri=chrom_int,chrom=range(1,23))
+#     script:
+#         "../scripts/ldsc_trait_chunk.R"
 
         
-rule prep_ldsc_uh:
-    input:
-        rdsf=expand(config["KG_DIRECTORY"]+"gwas_uh/chr{chrom}_{{pop_a}}_{{pop_b}}_{{scenario}}_{{ncovar}}_sim.h5",chrom=genome_chr)
-    params:
-        fgeneid=FGENEID[SCEN]
-    output:
-        ldscf=temp(expand(config["KG_DIRECTORY"]+"ldsc_sim_gwas_genome/chr{chri}_{{pop_a}}_{{pop_b}}_sim_{fgeneid}_uh_{{scenario}}_{{ncovar}}.txt",fgeneid=FGENEID[SCEN],chri=chrom_int))
-    script:
-        "../scripts/prep_ldsc_uh.R"
+# rule prep_ldsc_uh:
+#     input:
+#         rdsf=expand(config["KG_DIRECTORY"]+"gwas_uh/chr{chrom}_{{pop_a}}_{{pop_b}}_{{scenario}}_{{ncovar}}_sim.h5",chrom=genome_chr)
+#     params:
+#         fgeneid=FGENEID[SCEN]
+#     output:
+#         ldscf=temp(expand(config["KG_DIRECTORY"]+"ldsc_sim_gwas_genome/chr{chri}_{{pop_a}}_{{pop_b}}_sim_{fgeneid}_uh_{{scenario}}_{{ncovar}}.txt",fgeneid=FGENEID[SCEN],chri=chrom_int))
+#     script:
+#         "../scripts/prep_ldsc_uh.R"
 
         
-rule ldsc_trait_est_int:
-    input:
-        ldsc_f="ldsc/ldsc.py",
-        sumstatf=config["KG_DIRECTORY"]+"ldsc_sim_gwas_genome/chr{chri}_{{pop_a}}_{{pop_b}}_sim_{{fgeneid}}_uh_{{scenario}}_{{ncovar}}.txt".format(chri=chrom_int),
-        chroml2=expand(config["LDSC_LD"]+"{{pop_a}}_{{pop_b}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_chr{chri}/{chrom}.l2.ldscore.gz",chri=chrom_int,chrom=range(1,23))
-    params:
-        out_pref=config["KG_DIRECTORY"]+"ldsc_est_gwas_genome/est_chr{chri}_{{pop_a}}_{{pop_b}}_{{scenario}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_sim_{{fgeneid}}_{{ncovar}}_T".format(chri=chrom_int),
-        ld_dir=config["LDSC_LD"]+"{{pop_a}}_{{pop_b}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_chr{chri}/".format(chri=chrom_int)
-    output:
-        logf=temp(config["KG_DIRECTORY"]+"ldsc_est_gwas_genome/est_chr{chri}_{{pop_a}}_{{pop_b}}_{{scenario}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_sim_{{fgeneid}}_{{ncovar}}_T.log".format(chri=chrom_int))
-    conda:
-        "envs/ldsc.yml"
-    shell:
-        "python2 ./ldsc/ldsc.py --h2 {input.sumstatf}  --ref-ld-chr {params.ld_dir} --w-ld-chr {params.ld_dir} --out {params.out_pref} "
+# rule ldsc_trait_est_int:
+#     input:
+#         ldsc_f="ldsc/ldsc.py",
+#         sumstatf=config["KG_DIRECTORY"]+"ldsc_sim_gwas_genome/chr{chri}_{{pop_a}}_{{pop_b}}_sim_{{fgeneid}}_uh_{{scenario}}_{{ncovar}}.txt".format(chri=chrom_int),
+#         chroml2=expand(config["LDSC_LD"]+"{{pop_a}}_{{pop_b}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_chr{chri}/{chrom}.l2.ldscore.gz",chri=chrom_int,chrom=range(1,23))
+#     params:
+#         out_pref=config["KG_DIRECTORY"]+"ldsc_est_gwas_genome/est_chr{chri}_{{pop_a}}_{{pop_b}}_{{scenario}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_sim_{{fgeneid}}_{{ncovar}}_T".format(chri=chrom_int),
+#         ld_dir=config["LDSC_LD"]+"{{pop_a}}_{{pop_b}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_chr{chri}/".format(chri=chrom_int)
+#     output:
+#         logf=temp(config["KG_DIRECTORY"]+"ldsc_est_gwas_genome/est_chr{chri}_{{pop_a}}_{{pop_b}}_{{scenario}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_sim_{{fgeneid}}_{{ncovar}}_T.log".format(chri=chrom_int))
+#     conda:
+#         "envs/ldsc.yml"
+#     shell:
+#         "python2 ./ldsc/ldsc.py --h2 {input.sumstatf}  --ref-ld-chr {params.ld_dir} --w-ld-chr {params.ld_dir} --out {params.out_pref} "
 
 
-rule ldsc_trait_est_noint:
-    input:
-        ldsc_f="ldsc/ldsc.py",
-        sumstatf=config["KG_DIRECTORY"]+"ldsc_sim_gwas_genome/chr{chri}_{{pop_a}}_{{pop_b}}_sim_{{fgeneid}}_uh_{{scenario}}_{{ncovar}}.txt".format(chri=chrom_int),
-        chroml2=expand(config["LDSC_LD"]+"{{pop_a}}_{{pop_b}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_chr{chri}/{chrom}.l2.ldscore.gz",chri=chrom_int,chrom=genome_chr)
-    params:
-        out_pref=config["KG_DIRECTORY"]+"ldsc_est_gwas_genome/est_chr{chri}_{{pop_a}}_{{pop_b}}_{{scenario}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_sim_{{fgeneid}}_{{ncovar}}_F".format(chri=chrom_int),
-        ld_dir=config["LDSC_LD"]+"{{pop_a}}_{{pop_b}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_chr{chri}/".format(chri=chrom_int)
-    output:
-        logf=temp(config["KG_DIRECTORY"]+"ldsc_est_gwas_genome/est_chr{chri}_{{pop_a}}_{{pop_b}}_{{scenario}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_sim_{{fgeneid}}_{{ncovar}}_F.log".format(chri=chrom_int))
-    conda:
-        "envs/ldsc.yml"
+# rule ldsc_trait_est_noint:
+#     input:
+#         ldsc_f="ldsc/ldsc.py",
+#         sumstatf=config["KG_DIRECTORY"]+"ldsc_sim_gwas_genome/chr{chri}_{{pop_a}}_{{pop_b}}_sim_{{fgeneid}}_uh_{{scenario}}_{{ncovar}}.txt".format(chri=chrom_int),
+#         chroml2=expand(config["LDSC_LD"]+"{{pop_a}}_{{pop_b}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_chr{chri}/{chrom}.l2.ldscore.gz",chri=chrom_int,chrom=genome_chr)
+#     params:
+#         out_pref=config["KG_DIRECTORY"]+"ldsc_est_gwas_genome/est_chr{chri}_{{pop_a}}_{{pop_b}}_{{scenario}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_sim_{{fgeneid}}_{{ncovar}}_F".format(chri=chrom_int),
+#         ld_dir=config["LDSC_LD"]+"{{pop_a}}_{{pop_b}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_chr{chri}/".format(chri=chrom_int)
+#     output:
+#         logf=temp(config["KG_DIRECTORY"]+"ldsc_est_gwas_genome/est_chr{chri}_{{pop_a}}_{{pop_b}}_{{scenario}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_sim_{{fgeneid}}_{{ncovar}}_F.log".format(chri=chrom_int))
+#     conda:
+#         "envs/ldsc.yml"
 
-    shell:
-        "python2 ./ldsc/ldsc.py --h2 {input.sumstatf}  --no-intercept --ref-ld-chr {params.ld_dir} --w-ld-chr {params.ld_dir} --out {params.out_pref} "
+#     shell:
+#         "python2 ./ldsc/ldsc.py --h2 {input.sumstatf}  --no-intercept --ref-ld-chr {params.ld_dir} --w-ld-chr {params.ld_dir} --out {params.out_pref} "
 
 
-rule ldsc_trait_parse:
-    input:
-        logf=expand(config["KG_DIRECTORY"]+"ldsc_est_gwas_genome/est_chr{chri}_{{pop_a}}_{{pop_b}}_{{scenario}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_sim_{fgeneid}_{{ncovar}}_{{useIntercept}}.log",chri=chrom_int,fgeneid=FGENEID[SCEN]),
-        true_f=config["KG_DIRECTORY"]+"gwas_uh/chr{chrom}_{{pop_a}}_{{pop_b}}_{{scenario}}_{{ncovar}}_sim.h5".format(chrom=list(genome_chr)[0])
-    output:
-        logf=config["OUTPUT_DIR"]+"ldsc_res/est_chr{chri}_{{pop_a}}_{{pop_b}}_{{scenario}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_sim_{{ncovar}}_{{useIntercept}}.txt.gz".format(chri=chrom_int)
-    params:
-        fgeneid=expand("{fgeneid}",fgeneid=FGENEID[SCEN])
-    script:
-        "../scripts/parse_ldsc.R"                
+# rule ldsc_trait_parse:
+#     input:
+#         logf=expand(config["KG_DIRECTORY"]+"ldsc_est_gwas_genome/est_chr{chri}_{{pop_a}}_{{pop_b}}_{{scenario}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_sim_{fgeneid}_{{ncovar}}_{{useIntercept}}.log",chri=chrom_int,fgeneid=FGENEID[SCEN]),
+#         true_f=config["KG_DIRECTORY"]+"gwas_uh/chr{chrom}_{{pop_a}}_{{pop_b}}_{{scenario}}_{{ncovar}}_sim.h5".format(chrom=list(genome_chr)[0])
+#     output:
+#         logf=config["OUTPUT_DIR"]+"ldsc_res/est_chr{chri}_{{pop_a}}_{{pop_b}}_{{scenario}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_sim_{{ncovar}}_{{useIntercept}}.txt.gz".format(chri=chrom_int)
+#     params:
+#         fgeneid=expand("{fgeneid}",fgeneid=FGENEID[SCEN])
+#     script:
+#         "../scripts/parse_ldsc.R"
                 
         
 
-rule get_ldsc:
-    output:
-        "ldsc/ldsc.py"
-    shell:
-        "git clone https://github.com/bulik/ldsc.git"
-                      
-
+# rule get_ldsc:
+#     output:
+#         "ldsc/ldsc.py"
+#     shell:
+#         "git clone https://github.com/bulik/ldsc.git"
