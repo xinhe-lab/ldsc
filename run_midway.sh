@@ -11,4 +11,4 @@ else
     fi
 fi
 unset __conda_setup
-conda activate cause_large
+conda activate ptb_r
