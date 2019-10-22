@@ -35,6 +35,6 @@ rule merge_snp_db:
         gwasf=config['GWAS'] +"ptb_gwas.h5",
         snpff=config['DL'] +"snp{vers}.h5"
     output:
-        gwasf=config['GWAS'] +"ptb_gwas_rsid.h5",
+        gwasf=config['GWAS'] +"ptb_gwas_rsid_{vers}.h5",
     script:
         "../scripts/merge_gwas_rsid.R"
