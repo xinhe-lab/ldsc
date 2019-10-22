@@ -8,6 +8,6 @@ include: "gwas_snakefile"
 
 rule all:
     input:
-        config['DL'] +"snp150.h5",
+        config['DL'] +"snp151.h5",
         config['GWAS']+"ptb_gwas.h5"
         # expand(config["L2"] +"{pref}.{chrom}.l2.M",pref="atac-seq-reproducible-ctr-ATAC",chrom=19)

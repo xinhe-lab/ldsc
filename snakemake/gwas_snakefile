@@ -1,23 +1,23 @@
 
 rule get_snp151:
     output:
-        config['DL'] +"snp150.txt.gz"
+        config['DL'] +"snp{vers}.txt.gz"
     shell:
-        "wget http://hgdownload.cse.ucsc.edu/goldenpath/hg19/database/snp150.txt.gz -O {output}"
+        "wget http://hgdownload.cse.ucsc.edu/goldenpath/hg19/database/snp{vers}.txt.gz -O {output}"
 
 rule flat_snp151:
     input:
-        config['DL'] +"snp150.txt.gz"
+        config['DL'] +"snp{vers}.txt.gz"
     output:
-        config['DL'] +"snp150.txt"
+        config['DL'] +"snp{vers}.txt"
     shell:
         "gzip -cd {input} >{output}"
 
 rule snp2h5:
     input:
-        input=config['DL'] +"snp150.txt"
+        input=config['DL'] +"snp{vers}.txt"
     output:
-        output=config['DL'] +"snp150.h5"
+        output=config['DL'] +"snp{vers}.h5"
     script:
         "../scripts/snpdb2h5.R"
 
@@ -29,3 +29,12 @@ rule ptb_gwas2h5:
         output=config['GWAS'] +"ptb_gwas.h5"
     script:
         "../scripts/gwas2h5.R"
+
+rule merge_snp_db:
+    input:
+        gwasf=config['GWAS'] +"ptb_gwas.h5",
+        snpff=config['DL'] +"snp{vers}.h5"
+    output:
+        gwasf=config['GWAS'] +"ptb_gwas_rsid.h5",
+    script:
+        "../scripts/merge_gwas_rsid.R"
