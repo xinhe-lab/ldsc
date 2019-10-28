@@ -26,17 +26,11 @@ rule snp2h5:
 
 rule ptb_gwas2h5:
     input:
-        input=config['GWAS']+"meta.stat"
+        input=config['GWAS']+"meta.stat",
+        snp_f=config['DL'] +"snp{vers}.h5"
+
     output:
-        output=config['GWAS'] +"ptb_gwas.h5"
+        output=config['GWAS'] +"ptb_gwas_{vers}.h5"
     script:
         "../scripts/gwas2h5.R"
 
-rule merge_snp_db:
-    input:
-        gwasf=config['GWAS'] +"ptb_gwas.h5",
-        snpff=config['DL'] +"snp{vers}.h5"
-    output:
-        gwasf=config['GWAS'] +"ptb_gwas_rsid_{vers}.h5",
-    script:
-        "../scripts/merge_gwas_rsid.R"

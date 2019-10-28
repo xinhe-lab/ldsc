@@ -1,18 +1,23 @@
 library(EigenH5)
 library(readr)
+library(ldmap)
+library(tidyverse)
 
 mc <- readr::cols(
                  "bin" = col_integer(),
                  "chrom" = col_character(),
-                 "chromStart" = col_double(),
+                 "pos" = col_double(),
                  "chromEnd" = col_integer(),
                  "name" = col_character(),
                  "score" = col_integer(),
                  "strand" = col_factor(levels = c("+",  "-")),
                  "refNCBI" = col_character(),
-                 "refUCSC" = col_character(),
+                 "ref" = col_character(),
                  "observed" = col_character(),
-                 "molType" = col_factor(levels = c("unknown", "genomic", "cDNA")),
+                 "molType" = col_factor(levels = c(
+                                            "unknown",
+                                            "genomic",
+                                            "cDNA")),
                  "class" = col_factor(levels = c(
                                           "single",
                                           "in-del",
@@ -37,14 +42,19 @@ mc <- readr::cols(
                  "bitfields" = col_skip()
              )
 
-callback_fun <- function(df, filename, datapath, ...){
-    write_df_h5(df = dplyr::mutate(dplyr::filter(df, class == "single"),
+callback_fun <- function(df, filename, datapath, ...) {
+    write_df_h5(df = dplyr::arrange(dplyr::mutate(dplyr::filter(df, class == "single"),
                                    chrom = fast_str2int(chrom, offset = 3),
                                    refNCBI = fast_str2ascii(refNCBI),
-                                   refUCSC = fast_str2ascii(refUCSC),
+                                   ref = fast_str2ascii(ref),
                                    alt = fast_str2ascii(observed, offset = 2),
-                                   snp_struct = fast_snp_pos_struct(chrom, chromStart, refUCSC, alt),
+                                   snp_struct = new_ldmap_snp(
+                                       chrom,
+                                       pos,
+                                       ref,
+                                       alt),
                                    rsid = fast_str2int(name, offset = 2)),
+                                  rank.ldmap_snp(snp_struct), ref, alt),
                 filename = filename, datapath = datapath, ... = ...)
 }
 
@@ -66,4 +76,10 @@ delim2h5(input_f,
          col_types = mc,
          callback_fun = callback_fun,
          progress = TRUE,
-         chunk_size = 100000)
+         chunk_size = 300000)
+
+chrom_vec <- read_vector_h5v(output_f, "snp/chrom", i = integer())
+gwas_offset <- rle2offset(chrom_vec) %>%
+    rename(chrom = value)
+write_df_h5(gwas_offset,output_f,"chrom_offset")
+
