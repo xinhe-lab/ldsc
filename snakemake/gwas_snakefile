@@ -17,26 +17,26 @@ rule indexgwas2h5:
     script:
         "../scripts/index_gwas.R"
 
-  rule prep_ldsc_sumstsat:
-      input:
-          inputf=expand(config['GWAS'] +"hm3_index/ptb_gwas_hm_chr{chrom}.h5",chrom=range(1,23))
-      params:
-          gwas_t=""
-      output:
-          outputf=temp(config['GWAS'] +"ldsc_input/pre_ptb_gwas.sumstats.gz")
-      script:
-          "../scripts/gen_ldsc_sumstats.R"
+rule prep_ldsc_sumstsat:
+    input:
+        inputf=expand(config['GWAS'] +"hm3_index/ptb_gwas_hm_chr{chrom}.h5",chrom=range(1,23))
+    params:
+        gwas_t=""
+    output:
+        outputf=temp(config['GWAS'] +"ldsc_input/pre_ptb_gwas.sumstats.gz")
+    script:
+        "../scripts/gen_ldsc_sumstats.R"
 
 
-  rule check_ldsc_sumstat:
-      input:
-          config['GWAS'] +"ldsc_input/pre_ptb_gwas.sumstats.gz"
-      params:
-          outputf=config['GWAS'] +"ldsc_input/ptb_gwas"
-      conda:
-          "../envs/ldsc.yml"
-      output:
-          outputf=config['GWAS'] +"ldsc_input/ptb_gwas.sumstats",
-          logf=config['GWAS'] +"ldsc_input/ptb_gwas.sumstats.log"
-      shell:
-          "python2 ../munge_sumstats.py --sumstats {input} --out {params.outputf}"
+rule check_ldsc_sumstat:
+    input:
+        config['GWAS'] +"ldsc_input/pre_ptb_gwas.sumstats.gz"
+    params:
+        outputf=config['GWAS'] +"ldsc_input/ptb_gwas"
+    conda:
+        "../envs/ldsc.yml"
+    output:
+        outputf=config['GWAS'] +"ldsc_input/ptb_gwas.sumstats",
+        logf=config['GWAS'] +"ldsc_input/ptb_gwas.sumstats.log"
+    shell:
+        "python2 ../munge_sumstats.py --sumstats {input} --out {params.outputf}"
