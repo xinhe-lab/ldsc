@@ -330,7 +330,68 @@ rule indexgwas2h5:
           "python2 ../munge_sumstats.py --sumstats {input} --out {params.outputf}"
 #+END_SRC
 
+#+BEGIN_SRC bash :dir /ssh:rcc2:/project2/xinhe/software/ldsc/snakemake/
+. "/project2/xinhe/software/miniconda3/etc/profile.d/conda.sh"
+conda activate cause_gwas
+snakemake -n
 
+
+#+END_SRC
+
+#+RESULTS:
+| Building   | DAG                                              | of                                           |  jobs... |       |      |     |       |    |      |      |     |         |     |       |    |            |
+| Job        | counts:                                          |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+|            | count                                            | jobs                                         |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+|            | 1                                                | all                                          |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+|            | 1                                                | flat_snp151                                  |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+|            | 1                                                | get_snp151                                   |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+|            | 1                                                | ptb_gwas2h5                                  |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+|            | 1                                                | snp2h5                                       |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+|            | 5                                                |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+|            |                                                  |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+| [Sun       | Nov                                              | 3                                            | 12:11:44 | 2019] |      |     |       |    |      |      |     |         |     |       |    |            |
+| rule       | get_snp151:                                      |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+| output:    | /project2/xinhe/genomic_annotation/snp151.txt.gz |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+| jobid:     | 4                                                |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+| wildcards: | vers=151                                         |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+|            |                                                  |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+|            |                                                  |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+| [Sun       | Nov                                              | 3                                            | 12:11:44 | 2019] |      |     |       |    |      |      |     |         |     |       |    |            |
+| rule       | flat_snp151:                                     |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+| input:     | /project2/xinhe/genomic_annotation/snp151.txt.gz |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+| output:    | /project2/xinhe/genomic_annotation/snp151.txt    |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+| jobid:     | 3                                                |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+| wildcards: | vers=151                                         |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+|            |                                                  |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+|            |                                                  |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+| [Sun       | Nov                                              | 3                                            | 12:11:44 | 2019] |      |     |       |    |      |      |     |         |     |       |    |            |
+| rule       | snp2h5:                                          |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+| input:     | /project2/xinhe/genomic_annotation/snp151.txt    |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+| output:    | /project2/xinhe/genomic_annotation/snp151.h5     |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+| jobid:     | 1                                                |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+| wildcards: | vers=151                                         |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+|            |                                                  |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+| [Sun       | Nov                                              | 3                                            | 12:11:44 | 2019] |      |     |       |    |      |      |     |         |     |       |    |            |
+| rule       | ptb_gwas2h5:                                     |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+| input:     | /project2/xinhe/ptb/meta.stat,                   | /project2/xinhe/genomic_annotation/snp151.h5 |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+| output:    | /project2/xinhe/ptb/ptb_gwas_151.h5              |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+| jobid:     | 2                                                |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+| wildcards: | vers=151                                         |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+|            |                                                  |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+| [Sun       | Nov                                              | 3                                            | 12:11:44 | 2019] |      |     |       |    |      |      |     |         |     |       |    |            |
+| localrule  | all:                                             |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+| input:     | /project2/xinhe/genomic_annotation/snp151.h5,    | /project2/xinhe/ptb/ptb_gwas_151.h5          |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+| jobid:     | 0                                                |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+|            |                                                  |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+| Job        | counts:                                          |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+|            | count                                            | jobs                                         |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+|            | 1                                                | all                                          |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+|            | 1                                                | flat_snp151                                  |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+|            | 1                                                | get_snp151                                   |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+|            | 1                                                | ptb_gwas2h5                                  |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+|            | 1                                                | snp2h5                                       |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+|            | 5                                                |                                              |          |       |      |     |       |    |      |      |     |         |     |       |    |            |
+| This       | was                                              | a                                            |  dry-run | (flag | -n). | The | order | of | jobs | does | not | reflect | the | order | of | execution. |
 
 
 
