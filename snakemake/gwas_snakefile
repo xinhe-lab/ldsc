@@ -19,7 +19,7 @@ rule indexgwas2h5:
 
 rule prep_ldsc_sumstsat:
     input:
-        inputf=expand(config['GWAS'] +"hm3_index/ptb_gwas_hm_chr{chrom}.h5",chrom=range(1,23))
+        inputf=expand(config['GWAS'] +"hm3_index/ptb_gwas_hm_chr{chrom}.tsv",chrom=range(1,23))
     params:
         gwas_t=""
     output:
