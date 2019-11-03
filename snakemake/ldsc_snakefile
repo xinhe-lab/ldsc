@@ -1,33 +1,14 @@
-rule get_plinkfiles:
-    output:
-        temp(config['DL'] +"1000G_Phase1_plinkfiles.tgz")
-    shell:
-        "wget https://data.broadinstitute.org/alkesgroup/LDSCORE/1000G_Phase1_plinkfiles.tgz -O {output}"
-
-rule get_hm3snplist:
-    output:
-        temp(config['DL'] +"hapmap3_snps.tgz")
-    shell:
-        "wget https://data.broadinstitute.org/alkesgroup/LDSCORE/hapmap3_snps.tgz -O {output}"
 
 
-rule gunzip_hm3:
-    input:
-        config['DL'] +"hapmap3_snps.tgz"
-    output:
-        expand(config['1KG']+"hapmap3_snps"+"hm.{chrom}.snp",chrom=range(1,23))
 
-rule gunzip_plinkfiles:
-    input:
-        config['DL'] +"1000G_Phase1_plinkfiles.tgz"
-    output:
-        fam_files = expand(config['1KG'] +"1000G_plinkfiles/1000G.mac5eur.{chrom}.fam",chrom=range(1,23)),
-        bim_files = expand(config['1KG'] +"1000G_plinkfiles/1000G.mac5eur.{chrom}.bim",chrom=range(1,23)),
-        bed_files = expand(config['1KG'] +"1000G_plinkfiles/1000G.mac5eur.{chrom}.bed",chrom=range(1,23))
-    params:
-        KG=config['1KG']
-    shell:
-        '''tar -xvzf {input} -C {params.KG}'''
+
+
+
+
+
+
+
+
 
 
 rule unzip_annot:
@@ -53,8 +34,6 @@ rule make_annot:
         '''python2 ../make_annot.py --bed-file {input.anno_bed} --bimfile {input.bim} --annot-file {output.annot}'''
 
 
-
-
 rule cmp_ldsc:
     input:
         anno_bed=config['ANNO'] +"{annot}/{annot}.{chrom}.annot.gz",
@@ -75,7 +54,7 @@ rule cmp_ldsc:
         """python2 ../ldsc.py --l2 --bfile {params.plink} --ld-wind-cm 1 --annot {input.anno_bed} --thin-annot --out {params.odir} """
 
 
-rule run_ldsc:
+
 
 
 

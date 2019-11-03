@@ -1,36 +1,42 @@
-
-rule get_snp151:
-    output:
-        config['DL'] +"snp{vers}.txt.gz"
-    params:
-        vers="{vers}"
-    shell:
-        "wget http://hgdownload.cse.ucsc.edu/goldenpath/hg19/database/snp{params.vers}.txt.gz -O {output}"
-
-rule flat_snp151:
-    input:
-        config['DL'] +"snp{vers}.txt.gz"
-    output:
-        config['DL'] +"snp{vers}.txt"
-    shell:
-        "gzip -cd {input} >{output}"
-
-rule snp2h5:
-    input:
-        input=config['DL'] +"snp{vers}.txt"
-    output:
-        output=config['DL'] +"snp{vers}.h5"
-    script:
-        "../scripts/snpdb2h5.R"
-
-
 rule ptb_gwas2h5:
     input:
-        input=config['GWAS']+"meta.stat",
-        snp_f=config['DL'] +"snp{vers}.h5"
-
+        inputf=config['GWAS']+"meta.stat"
     output:
-        output=config['GWAS'] +"ptb_gwas_{vers}.h5"
+        outputf=config['GWAS'] +"ptb_gwas.h5"
     script:
         "../scripts/gwas2h5.R"
 
+rule indexgwas2h5:
+    input:
+        inputf=config['GWAS'] +"ptb_gwas.h5",
+        indexf=config['1KG']+"hapmap3_snps/"+"hm.{chrom}.tsv.gz"
+    params:
+        chrom="{chrom}"
+    output:
+        outputf=temp(config['GWAS'] +"hm3_index/ptb_gwas_hm_chr{chrom}.tsv")
+    script:
+        "../scripts/index_gwas.R"
+
+  rule prep_ldsc_sumstsat:
+      input:
+          inputf=expand(config['GWAS'] +"hm3_index/ptb_gwas_hm_chr{chrom}.h5",chrom=range(1,23))
+      params:
+          gwas_t=""
+      output:
+          outputf=temp(config['GWAS'] +"ldsc_input/pre_ptb_gwas.sumstats.gz")
+      script:
+          "../scripts/gen_ldsc_sumstats.R"
+
+
+  rule check_ldsc_sumstat:
+      input:
+          config['GWAS'] +"ldsc_input/pre_ptb_gwas.sumstats.gz"
+      params:
+          outputf=config['GWAS'] +"ldsc_input/ptb_gwas"
+      conda:
+          "../envs/ldsc.yml"
+      output:
+          outputf=config['GWAS'] +"ldsc_input/ptb_gwas.sumstats",
+          logf=config['GWAS'] +"ldsc_input/ptb_gwas.sumstats.log"
+      shell:
+          "python2 ../munge_sumstats.py --sumstats {input} --out {params.outputf}"

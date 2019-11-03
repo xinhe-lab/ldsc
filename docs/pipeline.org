@@ -1,0 +1,417 @@
+** Config
+
+#+BEGIN_SRC yaml :tangle ../snakemake/config.yaml
+---
+'1KG': &base "/run/media/nwknoblauch/Data/1kg/"
+'DL': "/run/media/nwknoblauch/Data/"
+'BED': "/run/media/nwknoblauch/Data/ptb_scratch/new_bed/"
+'ANNO': "/run/media/nwknoblauch/Data/LDSC_Annotations/"
+'L2': "/run/media/nwknoblauch/Data/L2/"
+'GWAS': "/run/media/nwknoblauch/Data/gwas_data/gwas_sumstats/"
+#+END_SRC
+
+#+BEGIN_SRC yaml :tangle /ssh:rcc2:/project2/xinhe/software/ldsc/snakemake/config.yaml
+---
+'1KG': &base "/project2/xinhe/1kg/"
+'DL': "/project2/xinhe/genomic_annotation/"
+'BED': "/scratch/midway2/nwknoblauch/ptb_scratch/new_bed/"
+'ANNO': "/project2/xinhe/genomic_annotation/LDSC_Annotations/"
+'L2': "/project2/xinhe/genomic_annotation/L2/"
+'GWAS': "/project2/xinhe/ptb/"
+#+END_SRC
+
+#+BEGIN_SRC snakemake :tangle ../snakemake/Snakefile
+
+  configfile:
+      'config.yaml'
+
+  include: "dl_snakefile"
+  include: "gwas_snakefile"
+
+  rule all:
+      input:
+          config['GWAS'] +"ldsc_input/ptb_gwas.sumstats"
+
+#+END_SRC
+
+** Downloading files
+
+The first step is to download some LD score regression stuff from the web. In particular we want a gzipped tarball of the hapmap 3 SNPs.
+
+#+BEGIN_SRC snakemake :tangle ../snakemake/dl_snakefile
+rule get_hm3snplist:
+    output:
+        temp(config['DL'] +"hapmap3_snps.tgz")
+    shell:
+        "wget https://data.broadinstitute.org/alkesgroup/LDSCORE/hapmap3_snps.tgz -O {output}"
+#+END_SRC
+
+Next we'll unzip the files and put them somewhere on disk.
+
+#+BEGIN_SRC snakemake :tangle ../snakemake/dl_snakefile
+
+rule gunzip_hm3:
+    input:
+        rules.get_hm3snplist.output
+    params:
+        dld=config['1KG']
+    output:
+        expand(config['1KG']+"hapmap3_snps/"+"hm.{chrom}.snp",chrom=range(1,23))
+    shell:
+        "tar -C {params.dld} -xvzf {input}"
+
+
+#+END_SRC
+
+The rsids don't come with coordinates, and we don't have coordinates for our GWAS data, so we'll use the ~SNPlocs.Hsapiens.dbSNP144.GRCh37~ package 
+to get the coordinates corresponding to these rsids.  Also note that we won't be able to get all of them, as some rsids have been merged by NCBI.
+
+#+BEGIN_SRC R :tangle ../scripts/rsid2loc.R
+
+  library(tidyverse)
+  library(ldmap)
+
+
+  input_f <- snakemake@input[["input"]]
+  output_f <- snakemake@output[["output"]]
+  input_ids <- EigenH5::fast_str2int(scan(input_f, what = character()), prefix = "rs")
+  input_ids <- input_ids[!is.na(input_ids)]
+  BSgenome::snpsById(SNPlocs.Hsapiens.dbSNP144.GRCh37::SNPlocs.Hsapiens.dbSNP144.GRCh37,
+                     ids = input_ids,
+                     ifnotfound = "warn") %>% as_tibble() %>% 
+      dplyr::rename(chrom = seqnames, rsid = RefSNP_id) %>%
+      dplyr::mutate(chrom = as.integer(chrom),
+                    rsid = rsid) %>%
+      select(-strand) %>%
+      readr::write_tsv(output_f)
+
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC snakemake :tangle ../snakemake/dl_snakefile
+
+rule snp2coord:
+    input:
+        inputf=config['1KG']+"hapmap3_snps/"+"hm.{chrom}.snp"
+    output:
+        outputf=config['1KG']+"hapmap3_snps/"+"hm.{chrom}.tsv.gz"
+    script:
+        "../scripts/rsid2loc.R"
+    
+#+END_SRC
+
+** Muning the GWAS data
+
+Unfortunately I don't have a remote source for the gwas summary statistics I can point you to, so we'll just pretend like you know
+how to get to `meta.stat` the PTB gwas file.  First thing is to convert it to HDF5 for easier read/write of subsets
+
+
+#+BEGIN_SRC R :tangle ../scripts/gwas2h5.R
+
+  library(tidyverse)
+  library(EigenH5)
+  library(readr)
+  library(ldmap)
+
+
+  mc <- cols(
+      rsid = col_character(),
+      chrom = col_integer(),
+      pos = col_double(),
+      A1 = col_character(),
+      A2 = col_character(),
+      N = col_double(),
+      freq = col_double(),
+      beta = col_double(),
+      se = col_double(),
+      pval = col_double(),
+      Q = col_double(),
+      het = col_double(),
+      N.local = col_double(),
+      freq.local = col_double(),
+      beta.local = col_double(),
+      se.local = col_double(),
+      pval.local = col_double(),
+      N.23andMe = col_double(),
+      freq.23andMe = col_double(),
+      beta.23andMe = col_double(),
+      se.23andMe = col_double(),
+      pval.23andMe = col_double()
+  )
+
+
+  input_f <- snakemake@input[["inputf"]]
+  output_f <- snakemake@output[["outputf"]]
+
+
+  callback_fun <- function(df, filename, datapath, ...){
+    write_df_h5(
+      df = dplyr::slice(
+                    dplyr::mutate(df,
+                                  ref = fast_str2ascii(A2),
+                                  alt = fast_str2ascii(A1),
+                                  snp_struct =
+                                    new_ldmap_snp(chrom, pos, ref, alt),
+                                  rsid = fast_str2int(rsid, prefix = "rs"),
+                                  ),
+                    rank.ldmap_snp(snp_struct)),
+      filename = filename, datapath = datapath, ... = ...)
+  }
+
+  stopifnot(!is.null(input_f),
+            !is.null(output_f),
+            file.exists(input_f),
+            !file.exists(output_f))
+
+  delim2h5(input_f,
+           output_file = output_f,
+           h5_args = list(datapath = "snp"),
+           delim = "\t",
+           col_names = names(mc$cols),
+           skip = 1L,
+           callback_fun = callback_fun,
+           col_types = mc,
+           progress = TRUE,
+           chunk_size = 150000)
+
+  chrom_vec <- read_vector_h5v(output_f, "snp/chrom", i = integer())
+  chrom_df <- rle2offset(chrom_vec) %>%
+      dplyr::rename(chrom = value)
+  write_df_h5(chrom_df,output_f,"chrom_offset")
+#+END_SRC
+
+
+
+
+#+BEGIN_SRC snakemake :tangle ../snakemake/gwas_snakefile
+
+  rule ptb_gwas2h5:
+      input:
+          inputf=config['GWAS']+"meta.stat"
+      output:
+          outputf=config['GWAS'] +"ptb_gwas.h5"
+      script:
+          "../scripts/gwas2h5.R"
+
+#+END_SRC
+
+
+
+Next is to write some code to pull out the indices with the matching rsids (using coordinates, not rsid)
+
+
+#+BEGIN_SRC R :tangle ../scripts/index_gwas.R
+
+  library(tidyverse)
+  library(EigenH5)
+  library(readr)
+  library(ldmap)
+
+  input_f <- snakemake@input[["inputf"]]
+  index_f <-  snakemake@input[["indexf"]]
+  chrom <- snakemake@params[["chrom"]]
+  stopifnot(!is.null(chrom))
+  schrom <- as.integer(chrom)
+  output_f <- snakemake@output[["outputf"]]
+
+  ind_spec <- cols(
+    chrom = col_integer(),
+    pos = col_double(),
+    rsid = col_integer(),
+    alleles_as_ambig = col_character()
+  )
+
+  gwas_type <- if_else(
+    is.null(snakemake@params[["gwas_t"]]),
+    "",
+    paste0(".", snakemake@params[["gwas_t"]])
+  )
+
+
+  beta_col <- glue::glue("beta{gwas_type}")
+  se_col <- glue::glue("se{gwas_type}")
+  N_col <- glue::glue("N{gwas_type}")
+
+  sel_cols <- c("snp_struct",
+                beta_col,
+                "A1",
+                "A2",
+                se_col,
+                N_col)
+
+  sel_cols <- stringr::str_replace(
+                         sel_cols,
+                         "\\.$",
+                         "")
+
+  index_df <- vroom::vroom(
+                       index_f,
+                       delim = "\t",
+                       col_names = names(ind_spec$cols),
+                       col_types = ind_spec,
+                       skip = 1L
+                     )
+
+  chrom_df <- read_tibble_h5(input_f, "chrom_offset", list()) %>%
+    filter(chrom == schrom) %>%
+    arrange(offset)
+
+  jdf <- pmap_dfr(chrom_df, function(chrom, datasize, offset) {
+    EigenH5::read_tibble_h5(filename = input_f,
+                            datapath = "snp",
+                            options = list(
+                              subcols = sel_cols,
+                              offset = offset,
+                              datasize = datasize)) %>%
+      mutate(subset = (1:n()) + offset) %>%
+      inner_join(index_df)
+  }) #%>% mutate(snp_struct = as_ldmap_snp(snp_struct))  %>%
+  stopifnot(all(jdf$chrom == schrom))
+
+  jdf  %>% rename(beta =  {{beta_col}},
+                  se =  {{se_col}},
+                  N =  {{N_col}}) %>%
+    dplyr::distinct(rsid, .keep_all = TRUE) %>% 
+    dplyr::transmute(SNP = rsid, N = N, Z = beta / se, A1 = A1, A2 = A2) %>%
+    vroom::vroom_write(output_f,delim = "\t")
+#+END_SRC
+
+#+BEGIN_SRC R :tangle ../scripts/gen_ldsc_sumstats.R
+library(vroom)
+
+ input_f <- snakemake@input[["inputf"]]
+ output <- snakemake@output[["outputf"]]
+
+ vroom::vroom(input_f,delim="\t") %>% vroom_write(output,delim="\t")
+
+
+#+END_SRC
+
+
+
+
+
+#+BEGIN_SRC snakemake :tangle ../snakemake/gwas_snakefile
+
+rule indexgwas2h5:
+    input:
+        inputf=config['GWAS'] +"ptb_gwas.h5",
+        indexf=config['1KG']+"hapmap3_snps/"+"hm.{chrom}.tsv.gz"
+    params:
+        chrom="{chrom}"
+    output:
+        outputf=temp(config['GWAS'] +"hm3_index/ptb_gwas_hm_chr{chrom}.tsv")
+    script:
+        "../scripts/index_gwas.R"
+
+  rule prep_ldsc_sumstsat:
+      input:
+          inputf=expand(config['GWAS'] +"hm3_index/ptb_gwas_hm_chr{chrom}.h5",chrom=range(1,23))
+      params:
+          gwas_t=""
+      output:
+          outputf=temp(config['GWAS'] +"ldsc_input/pre_ptb_gwas.sumstats.gz")
+      script:
+          "../scripts/gen_ldsc_sumstats.R"
+
+
+  rule check_ldsc_sumstat:
+      input:
+          config['GWAS'] +"ldsc_input/pre_ptb_gwas.sumstats.gz"
+      params:
+          outputf=config['GWAS'] +"ldsc_input/ptb_gwas"
+      conda:
+          "../envs/ldsc.yml"
+      output:
+          outputf=config['GWAS'] +"ldsc_input/ptb_gwas.sumstats",
+          logf=config['GWAS'] +"ldsc_input/ptb_gwas.sumstats.log"
+      shell:
+          "python2 ../munge_sumstats.py --sumstats {input} --out {params.outputf}"
+#+END_SRC
+
+
+
+
+
+
+** Running LDSC/
+
+#+BEGIN_SRC snakemake :tangle ../snakemake/dl_snakefile
+rule get_plinkfiles:
+    output:
+        temp(config['DL'] +"1000G_Phase1_plinkfiles.tgz")
+    shell:
+        "wget https://data.broadinstitute.org/alkesgroup/LDSCORE/1000G_Phase1_plinkfiles.tgz -O {output}"
+
+
+
+rule unzip_annot:
+    input:
+        config['BED'] + "{annot}.bed.gz"
+    output:
+        temp(config['BED'] + "{annot}.bed")
+    shell:
+        '''gzip -cd {input} > {output}'''
+
+
+rule make_annot:
+    input:
+        anno_bed=config['BED'] +"{annot}.bed",
+        bim=config['1KG'] + "1000G_plinkfiles/1000G.mac5eur.{chrom}.bim"
+    output:
+        annot = config['ANNO'] +"{annot}/{annot}.{chrom}.annot.gz"
+    params:
+        anno_name='{annot}'
+    conda:
+        "../envs/ldsc.yml"
+    shell:
+        '''python2 ../make_annot.py --bed-file {input.anno_bed} --bimfile {input.bim} --annot-file {output.annot}'''
+
+
+
+rule cmp_ldsc:
+    input:
+        anno_bed=config['ANNO'] +"{annot}/{annot}.{chrom}.annot.gz",
+        bim=config['1KG'] + "1000G_plinkfiles/1000G.mac5eur.{chrom}.bim",
+        bed=config['1KG'] + "1000G_plinkfiles/1000G.mac5eur.{chrom}.bed",
+        fam=config['1KG'] + "1000G_plinkfiles/1000G.mac5eur.{chrom}.fam"
+    output:
+        tempf=temp(config['L2']+"{annot}.{chrom}.log"),
+        l2=config['L2']+"{annot}.{chrom}.l2.M",
+        l2M_50=config['L2']+"{annot}.{chrom}.l2.M_5_50",
+        l2gz=config['L2']+"{annot}.{chrom}.l2.ldscore.gz"
+    params:
+        plink=config['1KG'] + "1000G_plinkfiles/1000G.mac5eur.{chrom}",
+        odir=config['L2']+"{annot}.{chrom}"
+    conda:
+        "../envs/ldsc.yml"
+    shell:
+        """python2 ../ldsc.py --l2 --bfile {params.plink} --ld-wind-cm 1 --annot {input.anno_bed} --thin-annot --out {params.odir} """
+
+
+
+
+rule gunzip_plinkfiles:
+    input:
+        config['DL'] +"1000G_Phase1_plinkfiles.tgz"
+    output:
+        fam_files = expand(config['1KG'] +"1000G_plinkfiles/1000G.mac5eur.{chrom}.fam",chrom=range(1,23)),
+        bim_files = expand(config['1KG'] +"1000G_plinkfiles/1000G.mac5eur.{chrom}.bim",chrom=range(1,23)),
+        bed_files = expand(config['1KG'] +"1000G_plinkfiles/1000G.mac5eur.{chrom}.bed",chrom=range(1,23))
+    params:
+        KG=config['1KG']
+    shell:
+        '''tar -xvzf {input} -C {params.KG}'''
+
+rule snp2h5:
+    input:
+        inputf=config['DL'] +"dbsnp/hg{hgv}/snp{vers}.txt"
+    output:
+        outputf=config['DL'] +"dbsnp/hg{hgv}/snp{vers}.h5"
+    script:
+        "../scripts/snpdb2h5.R"
+
+
+
+#+END_SRC

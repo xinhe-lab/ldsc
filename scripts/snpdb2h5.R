@@ -53,7 +53,7 @@ callback_fun <- function(df, filename, datapath, ...) {
                                        pos,
                                        ref,
                                        alt),
-                                   rsid = fast_str2int(name, offset = 2)),
+                                   rsid = fast_str2int(name, offset = 2, prefix = "rs")),
                                   rank.ldmap_snp(snp_struct), ref, alt),
                 filename = filename, datapath = datapath, ... = ...)
 }

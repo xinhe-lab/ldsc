@@ -1,0 +1,97 @@
+rule get_hm3snplist:
+    output:
+        temp(config['DL'] +"hapmap3_snps.tgz")
+    shell:
+        "wget https://data.broadinstitute.org/alkesgroup/LDSCORE/hapmap3_snps.tgz -O {output}"
+
+rule gunzip_hm3:
+    input:
+        rules.get_hm3snplist.output
+    params:
+        dld=config['1KG']
+    output:
+        expand(config['1KG']+"hapmap3_snps/"+"hm.{chrom}.snp",chrom=range(1,23))
+    shell:
+        "tar -C {params.dld} -xvzf {input}"
+
+rule snp2coord:
+    input:
+        inputf=config['1KG']+"hapmap3_snps/"+"hm.{chrom}.snp"
+    output:
+        outputf=config['1KG']+"hapmap3_snps/"+"hm.{chrom}.tsv.gz"
+    script:
+        "../scripts/rsid2loc.R"
+
+rule get_plinkfiles:
+    output:
+        temp(config['DL'] +"1000G_Phase1_plinkfiles.tgz")
+    shell:
+        "wget https://data.broadinstitute.org/alkesgroup/LDSCORE/1000G_Phase1_plinkfiles.tgz -O {output}"
+
+
+
+rule unzip_annot:
+    input:
+        config['BED'] + "{annot}.bed.gz"
+    output:
+        temp(config['BED'] + "{annot}.bed")
+    shell:
+        '''gzip -cd {input} > {output}'''
+
+
+rule make_annot:
+    input:
+        anno_bed=config['BED'] +"{annot}.bed",
+        bim=config['1KG'] + "1000G_plinkfiles/1000G.mac5eur.{chrom}.bim"
+    output:
+        annot = config['ANNO'] +"{annot}/{annot}.{chrom}.annot.gz"
+    params:
+        anno_name='{annot}'
+    conda:
+        "../envs/ldsc.yml"
+    shell:
+        '''python2 ../make_annot.py --bed-file {input.anno_bed} --bimfile {input.bim} --annot-file {output.annot}'''
+
+
+
+rule cmp_ldsc:
+    input:
+        anno_bed=config['ANNO'] +"{annot}/{annot}.{chrom}.annot.gz",
+        bim=config['1KG'] + "1000G_plinkfiles/1000G.mac5eur.{chrom}.bim",
+        bed=config['1KG'] + "1000G_plinkfiles/1000G.mac5eur.{chrom}.bed",
+        fam=config['1KG'] + "1000G_plinkfiles/1000G.mac5eur.{chrom}.fam"
+    output:
+        tempf=temp(config['L2']+"{annot}.{chrom}.log"),
+        l2=config['L2']+"{annot}.{chrom}.l2.M",
+        l2M_50=config['L2']+"{annot}.{chrom}.l2.M_5_50",
+        l2gz=config['L2']+"{annot}.{chrom}.l2.ldscore.gz"
+    params:
+        plink=config['1KG'] + "1000G_plinkfiles/1000G.mac5eur.{chrom}",
+        odir=config['L2']+"{annot}.{chrom}"
+    conda:
+        "../envs/ldsc.yml"
+    shell:
+        """python2 ../ldsc.py --l2 --bfile {params.plink} --ld-wind-cm 1 --annot {input.anno_bed} --thin-annot --out {params.odir} """
+
+
+
+
+rule gunzip_plinkfiles:
+    input:
+        config['DL'] +"1000G_Phase1_plinkfiles.tgz"
+    output:
+        fam_files = expand(config['1KG'] +"1000G_plinkfiles/1000G.mac5eur.{chrom}.fam",chrom=range(1,23)),
+        bim_files = expand(config['1KG'] +"1000G_plinkfiles/1000G.mac5eur.{chrom}.bim",chrom=range(1,23)),
+        bed_files = expand(config['1KG'] +"1000G_plinkfiles/1000G.mac5eur.{chrom}.bed",chrom=range(1,23))
+    params:
+        KG=config['1KG']
+    shell:
+        '''tar -xvzf {input} -C {params.KG}'''
+
+rule snp2h5:
+    input:
+        inputf=config['DL'] +"dbsnp/hg{hgv}/snp{vers}.txt"
+    output:
+        outputf=config['DL'] +"dbsnp/hg{hgv}/snp{vers}.h5"
+    script:
+        "../scripts/snpdb2h5.R"

@@ -1,13 +1,9 @@
-
 configfile:
     'config.yaml'
 
-
-#include: "ldsc_snakefile"
+include: "dl_snakefile"
 include: "gwas_snakefile"
 
 rule all:
     input:
-        config['DL'] +"snp151.h5",
-        config['GWAS']+"ptb_gwas_151.h5"
-        # expand(config["L2"] +"{pref}.{chrom}.l2.M",pref="atac-seq-reproducible-ctr-ATAC",chrom=19)
+        config['GWAS'] +"ldsc_input/ptb_gwas.sumstats"
