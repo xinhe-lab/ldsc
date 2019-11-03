@@ -4,6 +4,7 @@ configfile:
 include: "dl_snakefile"
 include: "gwas_snakefile"
 
+localrules: all, get_hm3_snplist
 rule all:
     input:
         config['GWAS'] +"ldsc_input/ptb_gwas.sumstats"

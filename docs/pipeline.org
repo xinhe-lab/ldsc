@@ -10,15 +10,15 @@
 'GWAS': "/run/media/nwknoblauch/Data/gwas_data/gwas_sumstats/"
 #+END_SRC
 
-# #+BEGIN_SRC yaml :tangle /ssh:rcc2:/project2/xinhe/software/ldsc/workflow/config.yaml
-# ---
-# '1KG': &base "/project2/xinhe/1kg/"
-# 'DL': "/project2/xinhe/genomic_annotation/"
-# 'BED': "/scratch/midway2/nwknoblauch/ptb_scratch/new_bed/"
-# 'ANNO': "/project2/xinhe/genomic_annotation/LDSC_Annotations/"
-# 'L2': "/project2/xinhe/genomic_annotation/L2/"
-# 'GWAS': "/project2/xinhe/ptb/"
-# #+END_SRC
+#+BEGIN_SRC yaml :tangle /ssh:rcc2:/project2/xinhe/software/ldsc/workflow/config.yaml
+---
+'1KG': &base "/project2/xinhe/1kg/"
+'DL': "/project2/xinhe/genomic_annotation/"
+'BED': "/scratch/midway2/nwknoblauch/ptb_scratch/new_bed/"
+'ANNO': "/project2/xinhe/genomic_annotation/LDSC_Annotations/"
+'L2': "/project2/xinhe/genomic_annotation/L2/"
+'GWAS': "/project2/xinhe/ptb/"
+#+END_SRC
 
 #+BEGIN_SRC snakemake :tangle ../workflow/snakefile
 
@@ -28,6 +28,7 @@
   include: "dl_snakefile"
   include: "gwas_snakefile"
 
+  localrules: all, get_hm3_snplist
   rule all:
       input:
           config['GWAS'] +"ldsc_input/ptb_gwas.sumstats"
