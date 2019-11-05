@@ -87,3 +87,4 @@ docs/_build/
 .Rproj.user
 snakemake/config.yaml
 snakemake/.snakemake**
+workflow/.snakemake**

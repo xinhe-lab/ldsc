@@ -1,10 +1,22 @@
+import yaml
+
 configfile:
     'config.yaml'
 
 include: "dl_snakefile"
 include: "gwas_snakefile"
+with open("annots.yaml", 'r') as stream:
+    all_annot = yaml.safe_load(stream)
 
-localrules: all, get_hm3_snplist
+
+# def get_annot_files(wildcards,extension="annot"):
+#    {'annots': expand("{att}"+extension,att=all_annot[wildcards.annot])}
+#(all_annot)
+wildcard_constraints:
+    chrom="\d+"
+
+localrules: all, get_hm3_snplist,get_plinkfiles
 rule all:
     input:
-        config['GWAS'] +"ldsc_input/ptb_gwas.sumstats"
+        config['GWAS'] +"ldsc_input/ptb_gwas.sumstats.gz",
+        "baseline.results"

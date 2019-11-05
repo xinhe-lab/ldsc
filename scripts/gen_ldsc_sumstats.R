@@ -1,4 +1,5 @@
 library(vroom)
+library(magrittr)
 
  input_f <- snakemake@input[["inputf"]]
  output <- snakemake@output[["outputf"]]

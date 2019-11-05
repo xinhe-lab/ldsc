@@ -36,7 +36,8 @@ rule check_ldsc_sumstat:
     conda:
         "../envs/ldsc.yml"
     output:
-        outputf=config['GWAS'] +"ldsc_input/ptb_gwas.sumstats",
-        logf=config['GWAS'] +"ldsc_input/ptb_gwas.sumstats.log"
+        outputf=config['GWAS'] +"ldsc_input/ptb_gwas.sumstats.gz",
+    log:
+        logf=config['GWAS'] +"ldsc_input/ptb_gwas.log"
     shell:
         "python2 ../munge_sumstats.py --sumstats {input} --out {params.outputf}"
