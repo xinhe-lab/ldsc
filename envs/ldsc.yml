@@ -43,9 +43,6 @@ dependencies:
   - six=1.12.0=py27_0
   - sqlite=3.26.0=h7b6447c_0
   - tk=8.6.8=hbc83047_0
-  - r-eigenh5=2.0
-  - r-ldmap=1.01
-  - r-tidyverse=1.2.1
   - wheel=0.32.3=py27_0
   - xz=5.2.4=h14c3975_4
   - zlib=1.2.11=h7b6447c_3

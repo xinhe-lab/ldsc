@@ -3,17 +3,21 @@ rule ptb_gwas2h5:
         inputf=config_d['GWAS']+"meta.stat"
     output:
         outputf=config_d['GWAS'] +"ptb_gwas.h5"
+    conda:
+        "../envs/eigenh5.yml"
     script:
         "../scripts/gwas2h5.R"
 
 rule indexgwas2h5:
     input:
         inputf=config_d['GWAS'] +"ptb_gwas.h5",
-        indexf=ldfiles = config_d['L2'] +"baselineLD.{chrom}.l2.ldscore.gz"
+        indexf=config_d['L2'] +"baselineLD.{chrom}.l2.ldscore.gz"
     params:
         chrom="{chrom}"
     output:
         outputf=temp(config_d['GWAS'] +"hm3_index/ptb_gwas_hm_chr{chrom}.tsv")
+    conda:
+        "../envs/eigenh5.yml"
     script:
         "../scripts/index_gwas.R"
 
@@ -24,6 +28,8 @@ rule prep_ldsc_sumstsat:
         gwas_t=""
     output:
         outputf=temp(config_d['GWAS'] +"ldsc_input/pre_ptb_gwas.sumstats.gz")
+    conda:
+        "../envs/eigenh5.yml"
     script:
         "../scripts/gen_ldsc_sumstats.R"
 

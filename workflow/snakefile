@@ -1,24 +1,24 @@
 import yaml
 
-configfile:
-    'config_base.yaml'
+  # configfile:
+  #     'config_base.yaml'
 
 with open("../workflow/config_base.yaml") as stream:
-    configl=yaml.safe_load(stream)
+      config=yaml.safe_load(stream)
 
-config_base = configl.pop('DL')
+config_base = config.pop('DL')
 
-config_d = {x:(config_base+y) for x,y in configl.items()}
+config_d = {x:(config_base+y) for x,y in config.items()}
+config_d['DL']=config_base
 
 
 
 def get_annot_files(wildcards):
     return {'anno_l2':expand(config_d['L2'] +"{anno_name}.{chrom}.l2.ldscore.gz",chrom=range(1,23),anno_name=all_annot[wildcards.anno_name]),
-            'baseline_l2':expand(config_d['L2'] +"baseline.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
+            'baseline_l2':expand(config_d['L2'] +"baseline/baselineLD.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
             'gwasf':config_d['GWAS'] +"ldsc_input/ptb_gwas.sumstats.gz",
-            'baselinef':  expand(config_d['L2'] +"{chrom}.l2.ldscore.gz",chrom=range(1,23)),
-            'freqf':  expand(config_d['FRQF'] +"1000G.mac5eur.{chrom}.frq.gz",chrom=range(1,23)),
-            'checkf':"{anno_name}.check".format(anno_name=wildcards.anno_name)
+            'baselinef':  expand(config_d['WEIGHTS'] +"weights.hm3_noMHC.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
+            'freqf':  expand(config_d['FRQF'] +"1000G.EUR.QC.{chrom}.frq",chrom=range(1,23)),
     }
 
 
@@ -27,12 +27,13 @@ include: "dl_snakefile"
 include: "gwas_snakefile"
 with open("annots.yaml", 'r') as stream:
     all_annot = yaml.safe_load(stream)
-#(all_annot)
+    #(all_annot)
 wildcard_constraints:
     chrom="\d+"
 
 localrules: all, get_hm3_snplist,get_plinkfiles,get_frq,get_weights
+
 rule all:
     input:
         config_d['GWAS'] +"ldsc_input/ptb_gwas.sumstats.gz",
-        "reproducible.results"
+          "reproducible.results"

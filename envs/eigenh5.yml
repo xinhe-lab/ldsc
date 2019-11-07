@@ -1,0 +1,14 @@
+name: eigenh5
+channels:
+  - https://repo.anaconda.com/pkgs/free
+  - bioconda
+  - crerecombinase
+  - conda-forge
+  - defaults
+dependencies:
+  - r-eigenh5=2.0
+  - r-ldmap=1.0.1
+  - r-tidyverse=1.2.1
+  - r-vroom=1.0.2
+prefix: /project2/xinhe/software/miniconda3/envs/eigenh5
+

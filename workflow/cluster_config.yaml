@@ -1,0 +1,8 @@
+---
+__default__:
+  partition: 'broadwl'
+  time: '05:30:00'
+  nodes: '1'
+  ntasks: '1'
+  cpuspertask: '1'
+  mem: '25gb'

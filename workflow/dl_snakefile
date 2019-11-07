@@ -86,23 +86,23 @@ rule gunzip_baseline:
     input:
         config_d['DL'] +"1000G_Phase3_baseline_ldscores.tgz"
     output:
-        ldfiles = expand(config_d['L2'] +"baselineLD.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
-        annotf = expand(config_d['L2'] +"baselineLD.{chrom}.annot.gz",chrom=range(1,23)),
-        m50 = expand(config_d['L2'] +"baselineLD.{chrom}.l2.M_5_50",chrom=range(1,23)),       
+        ldfiles = expand(config_d['L2'] +"baseline/baselineLD.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
+        annotf = expand(config_d['L2'] +"baseline/baselineLD.{chrom}.annot.gz",chrom=range(1,23)),
+        m50 = expand(config_d['L2'] +"baseline/baselineLD.{chrom}.l2.M_5_50",chrom=range(1,23)),       
     params:
         L2=config_d['L2']
     shell:
-        "tar -xvzf {input} -C {params.L2} && mv {params.L2}/baseline/* {params.L2}/"
+        "tar -xvzf {input} -C {params.L2}"
 
 
 
 rule unzip_annot:
     input:
-        config_d['BED'] + "{annot}.bed.gz"
+        config_d['BED'] + "{annot}.bed.bz2"
     output:
         temp(config_d['BED'] + "{annot}.bed")
     shell:
-        "gzip -cd {input} > {output}"
+        "bzip2 -cd {input} > {output}"
 
 
 rule make_annot:
@@ -132,7 +132,7 @@ rule cmp_ldscores:
         l2M_50=config_d['L2']+"{annot}.{chrom}.l2.M_5_50",
         l2gz=config_d['L2']+"{annot}.{chrom}.l2.ldscore.gz"
     params:
-        plink=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}"
+        plink=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}",
         odir=config_d['L2']+"{annot}.{chrom}"
     conda:
         "../envs/ldsc.yml"
@@ -159,9 +159,9 @@ rule run_ldsc:
         tempf=temp("{anno_name}.log")
     params:
       annot=lambda wildcards: ','.join(expand(config_d['L2']+"{anno_name}.",anno_name=all_annot[wildcards.anno_name])),
-      baseline=config_d['L2']+"baseline.",
-      weights=config_d['WEIGHTS']+"weights.",
-      frq=config_d['FRQF'] +"1000G.mac5eur.",
+      baseline=config_d['L2']+"baseline/baselineLD.",
+      weights=config_d['WEIGHTS']+"weights.hm3_noMHC.",
+      frq=config_d['FRQF'] +"1000G.EUR.QC.",
       odir="{anno_name}"
     conda:
         "../envs/ldsc.yml"
