@@ -1,43 +1,43 @@
 rule ptb_gwas2h5:
     input:
-        inputf=config['GWAS']+"meta.stat"
+        inputf=config_d['GWAS']+"meta.stat"
     output:
-        outputf=config['GWAS'] +"ptb_gwas.h5"
+        outputf=config_d['GWAS'] +"ptb_gwas.h5"
     script:
         "../scripts/gwas2h5.R"
 
 rule indexgwas2h5:
     input:
-        inputf=config['GWAS'] +"ptb_gwas.h5",
-        indexf=config['1KG']+"hapmap3_snps/"+"hm.{chrom}.tsv.gz"
+        inputf=config_d['GWAS'] +"ptb_gwas.h5",
+        indexf=ldfiles = config_d['L2'] +"baselineLD.{chrom}.l2.ldscore.gz"
     params:
         chrom="{chrom}"
     output:
-        outputf=temp(config['GWAS'] +"hm3_index/ptb_gwas_hm_chr{chrom}.tsv")
+        outputf=temp(config_d['GWAS'] +"hm3_index/ptb_gwas_hm_chr{chrom}.tsv")
     script:
         "../scripts/index_gwas.R"
 
 rule prep_ldsc_sumstsat:
     input:
-        inputf=expand(config['GWAS'] +"hm3_index/ptb_gwas_hm_chr{chrom}.tsv",chrom=range(1,23))
+        inputf=expand(config_d['GWAS'] +"hm3_index/ptb_gwas_hm_chr{chrom}.tsv",chrom=range(1,23))
     params:
         gwas_t=""
     output:
-        outputf=temp(config['GWAS'] +"ldsc_input/pre_ptb_gwas.sumstats.gz")
+        outputf=temp(config_d['GWAS'] +"ldsc_input/pre_ptb_gwas.sumstats.gz")
     script:
         "../scripts/gen_ldsc_sumstats.R"
 
 
 rule check_ldsc_sumstat:
     input:
-        config['GWAS'] +"ldsc_input/pre_ptb_gwas.sumstats.gz"
+        config_d['GWAS'] +"ldsc_input/pre_ptb_gwas.sumstats.gz"
     params:
-        outputf=config['GWAS'] +"ldsc_input/ptb_gwas"
+        outputf=config_d['GWAS'] +"ldsc_input/ptb_gwas"
     conda:
         "../envs/ldsc.yml"
     output:
-        outputf=config['GWAS'] +"ldsc_input/ptb_gwas.sumstats.gz",
+        outputf=config_d['GWAS'] +"ldsc_input/ptb_gwas.sumstats.gz",
     log:
-        logf=config['GWAS'] +"ldsc_input/ptb_gwas.log"
+        logf=config_d['GWAS'] +"ldsc_input/ptb_gwas.log"
     shell:
         "python2 ../munge_sumstats.py --sumstats {input} --out {params.outputf}"

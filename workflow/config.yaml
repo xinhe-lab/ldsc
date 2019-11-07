@@ -1,9 +1,0 @@
----
-'1KG': &base "/run/media/nwknoblauch/Data/1kg/"
-'DL': "/run/media/nwknoblauch/Data/"
-'BED': "/run/media/nwknoblauch/Data/ptb_scratch/new_bed/"
-'ANNO': "/run/media/nwknoblauch/Data/LDSC_Annotations/"
-'L2': "/run/media/nwknoblauch/Data/L2/"
-'WEIGHTS': "/run/media/nwknoblauch/Data/weights_hm3_no_hla/"
-'FRQF': "/run/media/nwknoblauch/Data/1000G_frq/"
-'GWAS': "/run/media/nwknoblauch/Data/gwas_data/gwas_sumstats/"
