@@ -11,7 +11,7 @@ rule ptb_gwas2h5:
 rule indexgwas2h5:
     input:
         inputf=config_d['GWAS'] +"ptb_gwas.h5",
-        indexf=config_d['L2'] +"baselineLD.{chrom}.l2.ldscore.gz"
+        indexf=config_d['L2'] +"baseline/baselineLD.{chrom}.l2.ldscore.gz"
     params:
         chrom="{chrom}"
     output:

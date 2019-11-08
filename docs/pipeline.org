@@ -29,13 +29,14 @@ I start off by defining some absolute directories that will be referred to throu
 
 
 #+BEGIN_SRC yaml :tangle ../workflow/config.yaml
+---
 'DL': "/run/media/nwknoblauch/Data/"
 '1KG': "/run/media/nwknoblauch/Data/1kg/"
 'BED': "/run/media/nwknoblauch/Data/ptb_scratch/new_bed/"
 'ANNO': "/run/media/nwknoblauch/Data/LDSC_Annotations/"
 'L2': "/run/media/nwknoblauch/Data/L2/"
-'WEIGHTS': "/run/media/nwknoblauch/Data/weights_hm3_no_hla/"
-'FRQF': "/run/media/nwknoblauch/Data/1000G_frq/"
+'WEIGHTS': "/run/media/nwknoblauch/Data/1kg/1000G_Phase3_weights_hm3_no_MHC/"
+'FRQF': "/run/media/nwknoblauch/Data/1kg/1000G_Phase3_frq/"
 'GWAS': "/run/media/nwknoblauch/Data/gwas_data/gwas_sumstats/"
 #+END_SRC
 
@@ -102,19 +103,19 @@ I start off by defining some absolute directories that will be referred to throu
     # configfile:
     #     'config_base.yaml'
 
-  with open("../workflow/config_base_gardner.yaml") as stream:
-        config=yaml.safe_load(stream)
+  with open("../workflow/config.yaml") as stream:
+        config_d=yaml.safe_load(stream)
 
-  config_base = config.pop('DL')
+  # config_base = config.pop('DL')
 
-  config_d = {x:(config_base+y) for x,y in config.items()}
-  config_d['DL']=config_base
+  # config_d = {x:(config_base+y) for x,y in config.items()}
+  # config_d['DL']=config_base
 
 
 
   def get_annot_files(wildcards):
       return {'anno_l2':expand(config_d['L2'] +"{anno_name}.{chrom}.l2.ldscore.gz",chrom=range(1,23),anno_name=all_annot[wildcards.anno_name]),
-              'baseline_l2':expand(config_d['L2'] +"baselineLD/baselineLD.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
+              'baseline_l2':expand(config_d['L2'] +"baseline/baselineLD.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
               'gwasf':config_d['GWAS'] +"ldsc_input/ptb_gwas.sumstats.gz",
               'baselinef':  expand(config_d['WEIGHTS'] +"weights.hm3_noMHC.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
               'freqf':  expand(config_d['FRQF'] +"1000G.EUR.QC.{chrom}.frq",chrom=range(1,23)),
@@ -312,11 +313,12 @@ Next is to write some code to pull out the indices with the matching rsids (usin
 
 #+BEGIN_SRC R :tangle ../scripts/index_gwas.R
 
-    library(tidyverse)
-    library(EigenH5)
-    library(readr)
-    library(ldmap)
-    ## load("~/Dropbox/Repos/ldsc/workflow/tf.RData")
+  library(tidyverse)
+  library(EigenH5)
+  library(readr)
+  library(ldmap)
+  ## setwd("~/Dropbox/Repos/ldsc/workflow/")
+  ##   load("~/Dropbox/Repos/ldsc/workflow/tf.RData")
 
     input_f <- snakemake@input[["inputf"]]
     index_f <-  snakemake@input[["indexf"]]
@@ -383,7 +385,7 @@ Next is to write some code to pull out the indices with the matching rsids (usin
 
                                           #%>% mutate(snp_struct = as_ldmap_snp(snp_struct))  %>%
   stopifnot(all(jdf$chrom == schrom))
-  stopifnot(nrow(jdf) == nr_index_df)
+  ## stopifnot(nrow(jdf) == nr_index_df)
 
     jdf  %>% rename(beta =  {{beta_col}},
                     se =  {{se_col}},
@@ -570,11 +572,22 @@ snakemake -n
           "../envs/ldsc.yml"
       shell:
           "python2 ../make_annot.py --bed-file {input.anno_bed} --bimfile {input.bim} --annot-file {output.annot}"
+
+  rule pull_rsid:
+      input:
+          config_d["L2"]+"baseline/baselineLD.{chrom}.l2.ldscore.gz"
+      output:
+          temp(config_d["L2"]+"snplist/{chrom}.snplist.txt")
+      shell:
+          "zcat {input} | cut -f 2 | tail -n +2 > {output}"
         
+
+
 
   rule cmp_ldscores:
       input:
           anno_bed=config_d['ANNO'] +"{annot}/{annot}.{chrom}.annot.gz",
+          snplistf=config_d["L2"]+"snplist/{chrom}.snplist.txt",
           bim=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.bim",
           bed=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.bed",
           fam=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.fam"
@@ -588,27 +601,27 @@ snakemake -n
       conda:
           "../envs/ldsc.yml"
       shell:
-          "python2 ../ldsc.py --l2 --bfile {params.plink} --ld-wind-cm 1 --annot {input.anno_bed} --thin-annot --out {params.odir} "
+          "python2 ../ldsc.py --l2 --bfile {params.plink} --extract {input.snplistf} --ld-wind-cm 1 --annot {input.anno_bed} --thin-annot --out {params.odir} "
 
 
-  rule cmp_ldscores_baseline:
-      input:
-          anno_bed=config_d['L2'] +"baseline/baselineLD.{chrom}.annot.gz",
-          bim=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.bim",
-          bed=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.bed",
-          fam=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.fam"
-      output:
-          l2=config_d['L2']+"baselineLD/{annot}.{chrom}.l2.M",
-          l2M_50=config_d['L2']+"baselineLD/{annot}.{chrom}.l2.M_5_50",
-          l2gz=config_d['L2']+"baselineLD/{annot}.{chrom}.l2.ldscore.gz"
-      params:
-          plink=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}",
-          odir=config_d['L2']+"baselineLD/{annot}.{chrom}"
-      conda:
-          "../envs/ldsc.yml"
-      shell:
-          "python2 ../ldsc.py --l2 --bfile {params.plink} --ld-wind-cm 1 --annot {input.anno_bed} --thin-annot --out {params.odir} "
-        
+  # rule cmp_ldscores_baseline:
+  #     input:
+  #         anno_bed=config_d['L2'] +"baseline/baselineLD.{chrom}.annot.gz",
+  #         bim=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.bim",
+  #         bed=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.bed",
+  #         fam=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.fam"
+  #     output:
+  #         l2=config_d['L2']+"baselineLD/{annot}.{chrom}.l2.M",
+  #         l2M_50=config_d['L2']+"baselineLD/{annot}.{chrom}.l2.M_5_50",
+  #         l2gz=config_d['L2']+"baselineLD/{annot}.{chrom}.l2.ldscore.gz"
+  #     params:
+  #         plink=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}",
+  #         odir=config_d['L2']+"baselineLD/{annot}.{chrom}"
+  #     conda:
+  #         "../envs/ldsc.yml"
+  #     shell:
+  #         "python2 ../ldsc.py --l2 --bfile {params.plink} --ld-wind-cm 1 --annot {input.anno_bed} --thin-annot --out {params.odir} "
+
   # def ldsc_fun(wildcards):
   #     {tchrom: expand(config_d['L2'] +"{anno_name}.{chrom}.l2.ldscore.gz",chrom=[tchrom],anno_name=['baseline' *all_annot[wildcards.anno_name]]) for tchrom in range(1,23)}
 

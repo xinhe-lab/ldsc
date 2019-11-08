@@ -22,6 +22,17 @@ rule gunzip_hm3:
 #     script:
 #         "../scripts/rsid2loc.R"
 
+rule get_cadd:
+    output:
+        temp(config_d["DL"]+"whole_genome_SNVs_inclAnno.tsv.gz")
+    shell:
+        "wget https://krishna.gs.washington.edu/download/CADD/v1.4/GRCh37/whole_genome_SNVs_inclAnno.tsv.gz -O {output}"
+
+rule get_spidex:
+    output:
+        temp(config_d["DL"]+"hg19_spidex.zip")
+    shell:
+        "wget http://www.openbioinformatics.org/annovar/download/IlvUMvrpPT/hg19_spidex.zip -O {output}"
 rule get_baseline_model:
     output:
         temp(config_d['DL']+"1000G_Phase3_baselineLD_v2.2_ldscores.tgz")
@@ -40,7 +51,7 @@ rule gunzip_weights:
     output:
         ldfiles = expand(config_d['WEIGHTS'] +"weights.hm3_noMHC.{chrom}.l2.ldscore.gz",chrom=range(1,23))
     params:
-        W=config_d['WEIGHTS']
+        W=config_d['1KG']
     shell:
         "tar -xvzf {input} -C {params.W}"        
 
@@ -77,22 +88,22 @@ rule gunzip_frqf:
     output:
         fam_files = expand(config_d['FRQF'] +"1000G.EUR.QC.{chrom}.frq",chrom=range(1,23)),
     params:
-        KG=config_d['FRQF']
+        KG=config_d['1KG']
     shell:
         "tar -xvzf {input} -C {params.KG}"
 
 
 rule gunzip_baseline:
     input:
-        config_d['DL'] +"1000G_Phase3_baseline_ldscores.tgz"
+        config_d['DL'] +"1000G_Phase3_baselineLD_v2.2_ldscores.tgz"
     output:
         ldfiles = expand(config_d['L2'] +"baseline/baselineLD.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
         annotf = expand(config_d['L2'] +"baseline/baselineLD.{chrom}.annot.gz",chrom=range(1,23)),
-        m50 = expand(config_d['L2'] +"baseline/baselineLD.{chrom}.l2.M_5_50",chrom=range(1,23)),       
+        m50 = expand(config_d['L2'] +"baseline/baselineLD.{chrom}.l2.M_5_50",chrom=range(1,23))
     params:
         L2=config_d['L2']
     shell:
-        "tar -xvzf {input} -C {params.L2}"
+        "tar -xvzf {input} -C {params.L2}/baseline"
 
 
 
@@ -118,16 +129,25 @@ rule make_annot:
     shell:
         "python2 ../make_annot.py --bed-file {input.anno_bed} --bimfile {input.bim} --annot-file {output.annot}"
 
+rule pull_rsid:
+    input:
+        config_d["L2"]+"baseline/baselineLD.{chrom}.l2.ldscore.gz"
+    output:
+        temp(config_d["L2"]+"snplist/{chrom}.snplist.txt")
+    shell:
+        "zcat {input} | cut -f 2 | tail -n +2 > {output}"
+
+
 
 
 rule cmp_ldscores:
     input:
         anno_bed=config_d['ANNO'] +"{annot}/{annot}.{chrom}.annot.gz",
+        snplistf=config_d["L2"]+"snplist/{chrom}.snplist.txt",
         bim=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.bim",
         bed=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.bed",
         fam=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.fam"
     output:
-        tempf=temp(config_d['L2']+"{annot}.{chrom}.log"),
         l2=config_d['L2']+"{annot}.{chrom}.l2.M",
         l2M_50=config_d['L2']+"{annot}.{chrom}.l2.M_5_50",
         l2gz=config_d['L2']+"{annot}.{chrom}.l2.ldscore.gz"
@@ -137,7 +157,26 @@ rule cmp_ldscores:
     conda:
         "../envs/ldsc.yml"
     shell:
-        "python2 ../ldsc.py --l2 --bfile {params.plink} --ld-wind-cm 1 --annot {input.anno_bed} --thin-annot --out {params.odir} "
+        "python2 ../ldsc.py --l2 --bfile {params.plink} --extract {input.snplistf} --ld-wind-cm 1 --annot {input.anno_bed} --thin-annot --out {params.odir} "
+
+
+# rule cmp_ldscores_baseline:
+#     input:
+#         anno_bed=config_d['L2'] +"baseline/baselineLD.{chrom}.annot.gz",
+#         bim=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.bim",
+#         bed=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.bed",
+#         fam=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.fam"
+#     output:
+#         l2=config_d['L2']+"baselineLD/{annot}.{chrom}.l2.M",
+#         l2M_50=config_d['L2']+"baselineLD/{annot}.{chrom}.l2.M_5_50",
+#         l2gz=config_d['L2']+"baselineLD/{annot}.{chrom}.l2.ldscore.gz"
+#     params:
+#         plink=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}",
+#         odir=config_d['L2']+"baselineLD/{annot}.{chrom}"
+#     conda:
+#         "../envs/ldsc.yml"
+#     shell:
+#         "python2 ../ldsc.py --l2 --bfile {params.plink} --ld-wind-cm 1 --annot {input.anno_bed} --thin-annot --out {params.odir} "
 
 # def ldsc_fun(wildcards):
 #     {tchrom: expand(config_d['L2'] +"{anno_name}.{chrom}.l2.ldscore.gz",chrom=[tchrom],anno_name=['baseline' *all_annot[wildcards.anno_name]]) for tchrom in range(1,23)}

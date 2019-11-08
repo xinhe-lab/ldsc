@@ -3,13 +3,13 @@ import yaml
   # configfile:
   #     'config_base.yaml'
 
-with open("../workflow/config_base.yaml") as stream:
-      config=yaml.safe_load(stream)
+with open("../workflow/config.yaml") as stream:
+      config_d=yaml.safe_load(stream)
 
-config_base = config.pop('DL')
+# config_base = config.pop('DL')
 
-config_d = {x:(config_base+y) for x,y in config.items()}
-config_d['DL']=config_base
+# config_d = {x:(config_base+y) for x,y in config.items()}
+# config_d['DL']=config_base
 
 
 
