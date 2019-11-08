@@ -14,6 +14,20 @@ I start off by defining some absolute directories that will be referred to throu
 'GWAS': "ptb/"
 #+END_SRC
 
+
+#+BEGIN_SRC yaml :tangle ../workflow/config_base_gardner.yaml
+---
+'DL': "/gpfs/data/xhe-lab/"
+'1KG': "1kg/"
+'BED': "genomic_annotation/ptb_epigenetic/"
+'ANNO': "LDSC_Annotations/"
+'L2': "genomic_annotation/L2/"
+'WEIGHTS': "1kg/1000G_Phase3_weights_hm3_no_MHC/"
+'FRQF': "1kg/1000G_Phase3_frq/"
+'GWAS': "ptb/"
+#+END_SRC
+
+
 #+BEGIN_SRC yaml :tangle ../workflow/config.yaml
 'DL': "/run/media/nwknoblauch/Data/"
 '1KG': "/run/media/nwknoblauch/Data/1kg/"
@@ -88,7 +102,7 @@ I start off by defining some absolute directories that will be referred to throu
     # configfile:
     #     'config_base.yaml'
 
-  with open("../workflow/config_base.yaml") as stream:
+  with open("../workflow/config_base_gardner.yaml") as stream:
         config=yaml.safe_load(stream)
 
   config_base = config.pop('DL')
@@ -298,83 +312,85 @@ Next is to write some code to pull out the indices with the matching rsids (usin
 
 #+BEGIN_SRC R :tangle ../scripts/index_gwas.R
 
-  library(tidyverse)
-  library(EigenH5)
-  library(readr)
-  library(ldmap)
-  ## load("~/Dropbox/Repos/ldsc/workflow/tf.RData")
+    library(tidyverse)
+    library(EigenH5)
+    library(readr)
+    library(ldmap)
+    ## load("~/Dropbox/Repos/ldsc/workflow/tf.RData")
 
-  input_f <- snakemake@input[["inputf"]]
-  index_f <-  snakemake@input[["indexf"]]
-  chrom <- snakemake@params[["chrom"]]
-  stopifnot(!is.null(chrom))
-  schrom <- as.integer(chrom)
-  output_f <- snakemake@output[["outputf"]]
-
-
-  ind_spec <- cols_only(
-    CHR = col_integer(),
-    BP = col_double(),
-    SNP = col_character()
-  )
-
-  gwas_type <- if_else(
-    is.null(snakemake@params[["gwas_t"]]),
-    "",
-    paste0(".", snakemake@params[["gwas_t"]])
-  )
+    input_f <- snakemake@input[["inputf"]]
+    index_f <-  snakemake@input[["indexf"]]
+    chrom <- snakemake@params[["chrom"]]
+    stopifnot(!is.null(chrom))
+    schrom <- as.integer(chrom)
+    output_f <- snakemake@output[["outputf"]]
 
 
-  beta_col <- glue::glue("beta{gwas_type}")
-  se_col <- glue::glue("se{gwas_type}")
-  N_col <- glue::glue("N{gwas_type}")
-  P_col <- glue::glue("pval{gwas_type}")
+    ind_spec <- cols_only(
+      CHR = col_integer(),
+      BP = col_double(),
+      SNP = col_character()
+    )
 
-  sel_cols <- c("snp_struct",
-                beta_col,
-                "A1",
-                "A2",
-                se_col,
-                N_col,
-                P_col)
+    gwas_type <- if_else(
+      is.null(snakemake@params[["gwas_t"]]),
+      "",
+      paste0(".", snakemake@params[["gwas_t"]])
+    )
 
-  sel_cols <- stringr::str_replace(
-                         sel_cols,
-                         "\\.$",
-                         "")
 
-  index_df <- vroom::vroom(
-                       index_f,
-                       delim = "\t",
-                       col_types = ind_spec
-                     )  %>% 
-                     rename(chrom=CHR,rsid=SNP,pos=BP)
+    beta_col <- glue::glue("beta{gwas_type}")
+    se_col <- glue::glue("se{gwas_type}")
+    N_col <- glue::glue("N{gwas_type}")
+    P_col <- glue::glue("pval{gwas_type}")
 
-  chrom_df <- read_tibble_h5(input_f, "chrom_offset", list()) %>%
-    filter(chrom == schrom) %>% mutate(offset = as.integer(offset), datasize = as.integer(datasize)) %>% 
-    arrange(offset)
+    sel_cols <- c("snp_struct",
+                  beta_col,
+                  "A1",
+                  "A2",
+                  se_col,
+                  N_col,
+                  P_col)
 
-  jdf <- pmap_dfr(chrom_df, function(chrom, datasize, offset) {
-#    subset_l <- seq(offset + 1, length.out = datasize)
-    input_i <- EigenH5::read_df_h5(filename = input_f,
-                            datapath = "snp",
-                              subcols = sel_cols,
-                              offset=offset,
-                              datasize=datasize) %>%
-      mutate(subset = (1:n()) + offset)
+    sel_cols <- stringr::str_replace(
+                           sel_cols,
+                           "\\.$",
+                           "")
 
-      inner_join(index_df,  bind_cols(input_i,ldmap::ldmap_snp_2_dataframe(input_i$snp_struct)))
-  })
+    index_df <- vroom::vroom(
+                         index_f,
+                         delim = "\t",
+                         col_types = ind_spec
+                       )  %>% 
+      rename(chrom=CHR,rsid=SNP,pos=BP)
+      nr_index_df <- nrow(index_df)
+
+    chrom_df <- read_tibble_h5(input_f, "chrom_offset", list()) %>%
+      filter(chrom == schrom) %>% mutate(offset = as.integer(offset), datasize = as.integer(datasize)) %>% 
+      arrange(offset)
+
+    jdf <- pmap_dfr(chrom_df, function(chrom, datasize, offset) {
+  #    subset_l <- seq(offset + 1, length.out = datasize)
+      input_i <- EigenH5::read_df_h5(filename = input_f,
+                              datapath = "snp",
+                                subcols = sel_cols,
+                                offset=offset,
+                                datasize=datasize) %>%
+        mutate(subset = (1:n()) + offset)
+
+        inner_join(index_df,  bind_cols(input_i,ldmap::ldmap_snp_2_dataframe(input_i$snp_struct)))
+    })
 
                                           #%>% mutate(snp_struct = as_ldmap_snp(snp_struct))  %>%
   stopifnot(all(jdf$chrom == schrom))
+  stopifnot(nrow(jdf) == nr_index_df)
 
-  jdf  %>% rename(beta =  {{beta_col}},
-                  se =  {{se_col}},
-                  N =  {{N_col}}) %>%
-    dplyr::distinct(rsid, .keep_all = TRUE) %>% 
-    dplyr::transmute(SNP = paste0("rs",rsid), N = N, Z = beta / se, A1 = A1, A2 = A2,P=pval) %>%
-    vroom::vroom_write(output_f,delim = "\t")
+    jdf  %>% rename(beta =  {{beta_col}},
+                    se =  {{se_col}},
+                    N =  {{N_col}}) %>%
+      dplyr::distinct(rsid, .keep_all = TRUE) %>% 
+      dplyr::transmute(SNP = paste0("rs",rsid), N = N, Z = beta / se, A1 = A1, A2 = A2,P=pval) %>%
+      vroom::vroom_write(output_f,delim = "\t")
 #+END_SRC
 
 #+BEGIN_SRC R :tangle ../scripts/gen_ldsc_sumstats.R
@@ -398,7 +414,7 @@ library(magrittr)
   rule indexgwas2h5:
       input:
           inputf=config_d['GWAS'] +"ptb_gwas.h5",
-          indexf=config_d['L2'] +"baselineLD.{chrom}.l2.ldscore.gz"
+          indexf=config_d['L2'] +"baseline/baselineLD.{chrom}.l2.ldscore.gz"
       params:
           chrom="{chrom}"
       output:
@@ -466,7 +482,7 @@ snakemake -n
       output:
           ldfiles = expand(config_d['WEIGHTS'] +"weights.hm3_noMHC.{chrom}.l2.ldscore.gz",chrom=range(1,23))
       params:
-          W=config_d['WEIGHTS']
+          W=config_d['1KG']
       shell:
           "tar -xvzf {input} -C {params.W}"        
         
@@ -503,14 +519,14 @@ snakemake -n
       output:
           fam_files = expand(config_d['FRQF'] +"1000G.EUR.QC.{chrom}.frq",chrom=range(1,23)),
       params:
-          KG=config_d['FRQF']
+          KG=config_d['1KG']
       shell:
           "tar -xvzf {input} -C {params.KG}"
 
 
   rule gunzip_baseline:
       input:
-          config_d['DL'] +"1000G_Phase3_baseline_ldscores.tgz"
+          config_d['DL'] +"1000G_Phase3_baselineLD_v2.2_ldscores.tgz"
       output:
           ldfiles = expand(config_d['L2'] +"baseline/baselineLD.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
           annotf = expand(config_d['L2'] +"baseline/baselineLD.{chrom}.annot.gz",chrom=range(1,23)),
@@ -518,7 +534,7 @@ snakemake -n
       params:
           L2=config_d['L2']
       shell:
-          "tar -xvzf {input} -C {params.L2}"
+          "tar -xvzf {input} -C {params.L2}/baseline"
 
 
 
