@@ -10,5 +10,7 @@ dependencies:
   - r-ldmap=1.0.1
   - r-tidyverse=1.2.1
   - r-vroom=1.0.2
+  - bzip2=1.0.8
+  - hdf5=1.10.5
 prefix: /project2/xinhe/software/miniconda3/envs/eigenh5
 
