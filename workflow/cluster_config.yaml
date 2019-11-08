@@ -6,3 +6,6 @@ __default__:
   ntasks: '1'
   cpuspertask: '1'
   mem: '25gb'
+run_ldsc:
+  partition: 'bigmem2'
+  mem: '128gb'
