@@ -1,3 +1,10 @@
+rule get_gest_dur_gwas:
+    output:
+        temp(config_d['GWAS']+"Fetal_gest_duration_NComms2019.txt.gz")
+    shell:
+        "wget http://mccarthy.well.ox.ac.uk/publications/2019/EggGestationalDuration_NatureCommunications/Fetal_gest_duration_NComms2019.txt.gz"
+
+
 rule get_hm3_snplist:
     output:
         temp(config_d['DL'] +"hapmap3_snps.tgz")
@@ -68,8 +75,6 @@ rule get_plinkfiles:
     shell:
         "wget https://data.broadinstitute.org/alkesgroup/LDSCORE/1000G_Phase3_plinkfiles.tgz -O {output}"
 
-
-
 rule gunzip_plinkfiles:
     input:
         config_d['DL'] +"1000G_Phase3_plinkfiles.tgz"
@@ -109,11 +114,13 @@ rule gunzip_baseline:
 
 rule unzip_annot:
     input:
-        config_d['BED'] + "{annot}.bed.bz2"
+        config_d['BED'] + "{annot}.bed.gz"
     output:
         temp(config_d['BED'] + "{annot}.bed")
+    wildcard_constraints:
+        annot="[^/]+"
     shell:
-        "bzip2 -cd {input} > {output}"
+        "gzip -cd {input} > {output}"
 
 
 rule make_annot:
@@ -121,13 +128,13 @@ rule make_annot:
         anno_bed=config_d['BED'] +"{annot}.bed",
         bim=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.bim"
     output:
-        annot = config_d['ANNO'] +"{annot}/{annot}.{chrom}.annot.gz"
+        annot = config_d['L2'] +"{annot}.{chrom}.annot.gz"
     params:
         anno_name='{annot}'
     conda:
-        "../envs/ldsc.yml"
+        config_e['ldsc']
     shell:
-        "python2 ../make_annot.py --bed-file {input.anno_bed} --bimfile {input.bim} --annot-file {output.annot}"
+        "python2 ../make_annot.py --bed-file {input.anno_bed} --bimfile {input.bim} --annot-file {output.annot} --annot-name {params.anno_name}"
 
 rule pull_rsid:
     input:
@@ -139,10 +146,9 @@ rule pull_rsid:
 
 
 
-
 rule cmp_ldscores:
     input:
-        anno_bed=config_d['ANNO'] +"{annot}/{annot}.{chrom}.annot.gz",
+        anno_bed=config_d['L2'] +"{annot}.{chrom}.annot.gz",
         snplistf=config_d["L2"]+"snplist/{chrom}.snplist.txt",
         bim=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.bim",
         bed=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.bed",
@@ -154,11 +160,12 @@ rule cmp_ldscores:
     params:
         plink=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}",
         odir=config_d['L2']+"{annot}.{chrom}"
+    # wildcard_constraints:
+    #     annot="[^/]"
     conda:
-        "../envs/ldsc.yml"
+        config_e['ldsc']
     shell:
-        "python2 ../ldsc.py --l2 --bfile {params.plink} --extract {input.snplistf} --ld-wind-cm 1 --annot {input.anno_bed} --thin-annot --out {params.odir} "
-
+        "python2 ../ldsc.py --l2 --bfile {params.plink} --print-snps {input.snplistf} --ld-wind-cm 1 --thin-annot --annot {input.anno_bed} --out {params.odir} "
 
 # rule cmp_ldscores_baseline:
 #     input:
@@ -174,9 +181,9 @@ rule cmp_ldscores:
 #         plink=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}",
 #         odir=config_d['L2']+"baselineLD/{annot}.{chrom}"
 #     conda:
-#         "../envs/ldsc.yml"
+#         config_e['ldsc']
 #     shell:
-#         "python2 ../ldsc.py --l2 --bfile {params.plink} --ld-wind-cm 1 --annot {input.anno_bed} --thin-annot --out {params.odir} "
+#         "python2 ../ldsc.py --l2 --bfile {params.plink} --ld-wind-cm 1 --annot {input.anno_bed}  --out {params.odir} "
 
 # def ldsc_fun(wildcards):
 #     {tchrom: expand(config_d['L2'] +"{anno_name}.{chrom}.l2.ldscore.gz",chrom=[tchrom],anno_name=['baseline' *all_annot[wildcards.anno_name]]) for tchrom in range(1,23)}
@@ -189,20 +196,50 @@ rule cmp_ldscores:
 #     script:
 #         "../scripts/check_ldscfiles.R"
 
+def new_get_annot_files(wildcards):
+    return {'anno_l2':expand(config_d['L2'] +"{annot}.{chrom}.l2.ldscore.gz",chrom=range(1,23),annot=all_annot['ptb_model'][wildcards.anno_name]),
+            'baseline_l2':expand(config_d['L2'] +"baseline/baselineLD.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
+            'gwasf':config_d['GWAS'] +"ldsc_input/ptb_gwas.sumstats.gz",
+            'baselinef':  expand(config_d['WEIGHTS'] +"weights.hm3_noMHC.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
+            'freqf':  expand(config_d['FRQF'] +"1000G.EUR.QC.{chrom}.frq",chrom=range(1,23)),
+    }
+
+
+
+def get_merge_annot_files(wildcards):
+    return {'anno_l2':expand(config_d['L2'] +"{annot}.{chrom}.l2.ldscore.gz",chrom=range(1,23),annot=all_annot['ptb_model'][wildcards.anno_name]),
+            'annof':expand(config_d['L2'] +"{annot}.{chrom}.annot.gz",chrom=range(1,23),annot=all_annot['ptb_model'][wildcards.anno_name]),
+            'baseline_l2':expand(config_d['L2'] +"baseline/baselineLD.{chrom}.l2.ldscore.gz",chrom=range(1,23))
+      }
+
+rule merge_ldsc:
+    input:
+        unpack(get_merge_annot_files)   
+    output:
+        dataf=expand(config_d["L2"]+"new_baseline/{{anno_name}}.{chrom}.l2.ldscore.gz",chrom=range(1,23))
+    params:
+        L2=config_d['L2'],
+        baseline_features=all_annot['baseline_model'],
+        features=lambda wildcards: all_annot['ptb_model'][wildcards.anno_name],
+        annot_name="{anno_name}"
+    script:
+        "../scripts/check_ldscfiles.R"
+
 rule run_ldsc:
     input:
-        unpack(get_annot_files)
+        anno_ld=expand(config_d["L2"]+"new_baseline/{{anno_name}}.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
+        baselinef=  expand(config_d['WEIGHTS'] +"weights.hm3_noMHC.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
+        gwasf=config_d['GWAS'] +"ldsc_input/ptb_gwas.sumstats.gz"
     output:
         dataf="{anno_name}.results"
     log:
         tempf=temp("{anno_name}.log")
     params:
-      annot=lambda wildcards: ','.join(expand(config_d['L2']+"{anno_name}.",anno_name=all_annot[wildcards.anno_name])),
-      baseline=config_d['L2']+"baseline/baselineLD.",
-      weights=config_d['WEIGHTS']+"weights.hm3_noMHC.",
-      frq=config_d['FRQF'] +"1000G.EUR.QC.",
-      odir="{anno_name}"
+        annot=config_d["L2"]+"new_baseline/{anno_name}",
+        weights=config_d['WEIGHTS']+"weights.hm3_noMHC.",
+        frq=config_d['FRQF'] +"1000G.EUR.QC.",
+        odir="{anno_name}"
     conda:
-        "../envs/ldsc.yml"
+        config_e['ldsc']
     shell:
-        """python2 ../ldsc.py --h2 {input.gwasf} --ref-ld-chr {params.annot},{params.baseline} --w-ld-chr {params.weights} --thin-annot --overlap-annot --frqfile-chr {params.frq} --out {params.odir} """
+        """python2 ../ldsc.py --h2 {input.gwasf} --ref-ld-chr {params.annot} --w-ld-chr {params.weights} --overlap-annot --frqfile-chr {params.frq} --out {params.odir} """

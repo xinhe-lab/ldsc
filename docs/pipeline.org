@@ -2,129 +2,289 @@
 
 I start off by defining some absolute directories that will be referred to throughout the script.  Hopefully I only have to change these 
 
+
 #+BEGIN_SRC yaml :tangle ../workflow/config_base.yaml
----
-'DL': "/project2/xinhe/"
-'1KG': "1kg/"
-'BED': "genomic_annotation/ptb_epigenetic/"
-'ANNO': "LDSC_Annotations/"
-'L2': "genomic_annotation/L2/"
-'WEIGHTS': "1kg/1000G_Phase3_weights_hm3_no_MHC/"
-'FRQF': "1kg/1000G_Phase3_frq/"
-'GWAS': "ptb/"
+  ---
+  flag_file: &hst !Host {options: {midway2: "/project2", gardner: "/gpfs/data/xhe-lab/", desktop: "/run/media/nwknoblauch/Data"}}
+  paths: 
+    'DL': &dl  !Dep {host: *hst, pref:  null, path: { midway2: "/project2/xinhe/", gardner: "/gpfs/data/xhe-lab/", desktop: "/run/media/nwknoblauch/Data/"}}
+    '1KG':     !Dep {host: *hst, pref: *dl, path: {midway2: &1kg "1kg/", gardner: *1kg , desktop: *1kg} }
+    'BED':     !Dep {host: *hst, pref: *dl, path: {midway2: &bed "genomic_annotation/ptb_epigenetic/", gardner: *bed, desktop: "ptb_scratch/new_bed/"}}
+    'L2':      !Dep {host: *hst, pref: *dl, path: {midway2: &l2 "genomic_annotation/L2/", gardner: *l2, desktop: "L2/"}}
+    'ANNO':    !Dep {host: *hst, pref: *dl, path: {midway2: *l2 , gardner: *l2, desktop: *l2}}
+    'WEIGHTS': !Dep {host: *hst, pref: *dl, path: {midway2: &weight "1kg/1000G_Phase3_weights_hm3_no_MHC/", gardner: *weight, desktop: *weight}} 
+    'FRQF':    !Dep {host: *hst, pref: *dl, path: {midway2: &frq "1kg/1000G_Phase3_frq/", gardner: *frq, desktop: "1kg/1000G_Phase3_frq/"}} 
+    'GWAS':    !Dep {host: *hst, pref: *dl, path: {midway2: &gwas "ptb/", gardner: *gwas, desktop: "gwas_data/gwas_sumstats/"}}
+  envs:
+    'r':    !Dep {host: *hst, pref:  null, path: { midway2: "../envs/eigenh5.yml", gardner: "../envs/eigenh5.yml", desktop: null }}
+    'ldsc': !Dep {host: *hst, pref:  null, path: { midway2: "../envs/ldsc.yml", gardner: "../envs/ldsc.yml", desktop: "../envs/ldsc.yml" }}
 #+END_SRC
 
 
-#+BEGIN_SRC yaml :tangle ../workflow/config_base_gardner.yaml
----
-'DL': "/gpfs/data/xhe-lab/"
-'1KG': "1kg/"
-'BED': "genomic_annotation/ptb_epigenetic/"
-'ANNO': "LDSC_Annotations/"
-'L2': "genomic_annotation/L2/"
-'WEIGHTS': "1kg/1000G_Phase3_weights_hm3_no_MHC/"
-'FRQF': "1kg/1000G_Phase3_frq/"
-'GWAS': "ptb/"
+
+#+BEGIN_SRC yaml :tangle ../workflow/base_model.yaml
+- 'Coding_UCSCL2'
+- 'Coding_UCSC.flanking.500L2'
+- 'Conserved_LindbladTohL2'
+- 'Conserved_LindbladToh.flanking.500L2'
+- 'CTCF_HoffmanL2'
+- 'CTCF_Hoffman.flanking.500L2'
+- 'DGF_ENCODEL2'
+- 'DGF_ENCODE.flanking.500L2'
+- 'DHS_peaks_TrynkaL2'
+- 'DHS_TrynkaL2'
+- 'DHS_Trynka.flanking.500L2'
+- 'Enhancer_AnderssonL2'
+- 'Enhancer_Andersson.flanking.500L2'
+- 'Enhancer_HoffmanL2'
+- 'Enhancer_Hoffman.flanking.500L2'
+- 'FetalDHS_TrynkaL2'
+- 'FetalDHS_Trynka.flanking.500L2'
+- 'H3K27ac_HniszL2'
+- 'H3K27ac_Hnisz.flanking.500L2'
+- 'H3K27ac_PGC2L2'
+- 'H3K27ac_PGC2.flanking.500L2'
+- 'H3K4me1_peaks_TrynkaL2'
+- 'H3K4me1_TrynkaL2'
+- 'H3K4me1_Trynka.flanking.500L2'
+- 'H3K4me3_peaks_TrynkaL2'
+- 'H3K4me3_TrynkaL2'
+- 'H3K4me3_Trynka.flanking.500L2'
+- 'H3K9ac_peaks_TrynkaL2'
+- 'H3K9ac_TrynkaL2'
+- 'H3K9ac_Trynka.flanking.500L2'
+- 'Intron_UCSCL2'
+- 'Intron_UCSC.flanking.500L2'
+- 'PromoterFlanking_HoffmanL2'
+- 'PromoterFlanking_Hoffman.flanking.500L2'
+- 'Promoter_UCSCL2'
+- 'Promoter_UCSC.flanking.500L2'
+- 'Repressed_HoffmanL2'
+- 'Repressed_Hoffman.flanking.500L2'
+- 'SuperEnhancer_HniszL2'
+- 'SuperEnhancer_Hnisz.flanking.500L2'
+- 'TFBS_ENCODEL2'
+- 'TFBS_ENCODE.flanking.500L2'
+- 'Transcr_HoffmanL2'
+- 'Transcr_Hoffman.flanking.500L2'
+- 'TSS_HoffmanL2'
+- 'TSS_Hoffman.flanking.500L2'
+- 'UTR_3_UCSCL2'
+- 'UTR_3_UCSC.flanking.500L2'
+- 'UTR_5_UCSCL2'
+- 'UTR_5_UCSC.flanking.500L2'
+- 'WeakEnhancer_HoffmanL2'
+- 'WeakEnhancer_Hoffman.flanking.500L2'
+- 'GERP.NSL2'
+- 'GERP.RSsup4L2'
+- 'MAFbin1L2'
+- 'MAFbin2L2'
+- 'MAFbin3L2'
+- 'MAFbin4L2'
+- 'MAFbin5L2'
+- 'MAFbin6L2'
+- 'MAFbin7L2'
+- 'MAFbin8L2'
+- 'MAFbin9L2'
+- 'MAFbin10L2'
+- 'MAF_Adj_Predicted_Allele_AgeL2'
+- 'MAF_Adj_LLD_AFRL2'
+- 'Recomb_Rate_10kbL2'
+- 'Nucleotide_Diversity_10kbL2'
+- 'Backgrd_Selection_StatL2'
+- 'CpG_Content_50kbL2'
+- 'MAF_Adj_ASMCL2'
+- 'GTEx_eQTL_MaxCPPL2'
+- 'BLUEPRINT_H3K27acQTL_MaxCPPL2'
+- 'BLUEPRINT_H3K4me1QTL_MaxCPPL2'
+- 'BLUEPRINT_DNA_methylation_MaxCPPL2'
+- 'synonymousL2'
+- 'non_synonymousL2'
+- 'Conserved_Vertebrate_phastCons46wayL2'
+- 'Conserved_Vertebrate_phastCons46way.flanking.500L2'
+- 'Conserved_Mammal_phastCons46wayL2'
+- 'Conserved_Mammal_phastCons46way.flanking.500L2'
+- 'Conserved_Primate_phastCons46wayL2'
+- 'Conserved_Primate_phastCons46way.flanking.500L2'
+- 'BivFlnkL2'
+- 'BivFlnk.flanking.500L2'
+- 'Human_Promoter_VillarL2'
+- 'Human_Promoter_Villar.flanking.500L2'
+- 'Human_Enhancer_VillarL2'
+- 'Human_Enhancer_Villar.flanking.500L2'
+- 'Ancient_Sequence_Age_Human_PromoterL2'
+- 'Ancient_Sequence_Age_Human_Promoter.flanking.500L2'
+- 'Ancient_Sequence_Age_Human_EnhancerL2'
+- 'Ancient_Sequence_Age_Human_Enhancer.flanking.500L2'
+- 'Human_Enhancer_Villar_Species_Enhancer_CountL2'
+- 'Human_Promoter_Villar_ExACL2'
+- 'Human_Promoter_Villar_ExAC.flanking.500L2'
 #+END_SRC
 
-
-#+BEGIN_SRC yaml :tangle ../workflow/config.yaml
----
-'DL': "/run/media/nwknoblauch/Data/"
-'1KG': "/run/media/nwknoblauch/Data/1kg/"
-'BED': "/run/media/nwknoblauch/Data/ptb_scratch/new_bed/"
-'ANNO': "/run/media/nwknoblauch/Data/LDSC_Annotations/"
-'L2': "/run/media/nwknoblauch/Data/L2/"
-'WEIGHTS': "/run/media/nwknoblauch/Data/1kg/1000G_Phase3_weights_hm3_no_MHC/"
-'FRQF': "/run/media/nwknoblauch/Data/1kg/1000G_Phase3_frq/"
-'GWAS': "/run/media/nwknoblauch/Data/gwas_data/gwas_sumstats/"
-#+END_SRC
 
 #+BEGIN_SRC yaml :tangle ../workflow/annots.yaml
   ---
-  full: [
-  'chip-seq-pooled-DSC1-dec-H3K27ac',
-  'atac-seq-pooled-DSC2-dec-ATAC',
-  'chip-seq-pooled-DSC1-ctr-H3K4me3',
-  'atac-seq-pooled-DSC3-ctr-ATAC',
-  'chip-seq-pooled-DSC3-ctr-H3K4me1',
-  'chip-seq-pooled-DSC1-ctr-H3K4me1',
-  'atac-seq-pooled-DSC1-ctr-ATAC',
-  'chip-seq-reproducible-ctr-H3K4me3',
-  'chip-seq-reproducible-dec-H3K27ac',
-  'chip-seq-reproducible-dec-H3K4me3',
-  'chip-seq-reproducible-dec-H3K4me1',
-  'chip-seq-reproducible-ctr-H3K4me1',
-  'atac-seq-reproducible-dec-ATAC',
-  'chip-seq-reproducible-ctr-H3K27ac',
-  'atac-seq-reproducible-ctr-ATAC',
-  'chip-seq-dec_up-H3K4me1',
-  'chip-seq-pooled-DSC3-dec-H3K4me3',
-  'atac-seq-pooled-DSC2-ctr-ATAC',
-  'chip-seq-dec_up-H3K4me3',
-  'chip-seq-pooled-DSC3-ctr-H3K4me3',
-  'atac-seq-dec_down-ATAC',
-  'atac-seq-pooled-DSC3-dec-ATAC',
-  'chip-seq-dec_up-H3K27ac',
-  'chip-seq-dec_down-H3K4me3',
-  'chip-seq-pooled-DSC2-ctr-H3K4me1',
-  'chip-seq-pooled-DSC1-dec-H3K4me1',
-  'chip-seq-pooled-DSC2-ctr-H3K27ac',
-  'chip-seq-pooled-DSC2-dec-H3K4me1',
-  'chip-seq-pooled-DSC1-dec-H3K4me3',
-  'atac-seq-dec_up-ATAC',
-  'chip-seq-pooled-DSC2-dec-H3K27ac',
-  'chip-seq-pooled-DSC3-dec-H3K27ac',
-  'chip-seq-dec_down-H3K27ac',
-  'chip-seq-pooled-DSC3-ctr-H3K27ac',
-  'chip-seq-dec_down-H3K4me1',
-  'chip-seq-pooled-DSC3-dec-H3K4me1',
-  'chip-seq-pooled-DSC2-dec-H3K4me3',
-  'chip-seq-pooled-DSC2-ctr-H3K4me3',
-  'atac-seq-pooled-DSC1-dec-ATAC',
-  'chip-seq-pooled-DSC1-ctr-H3K27ac']
-  reproducible: [
-  'chip-seq-reproducible-ctr-H3K4me3',
-  'chip-seq-reproducible-dec-H3K27ac',
-  'chip-seq-reproducible-dec-H3K4me3',
-  'chip-seq-reproducible-dec-H3K4me1',
-  'chip-seq-reproducible-ctr-H3K4me1',
-  'atac-seq-reproducible-dec-ATAC',
-  'chip-seq-reproducible-ctr-H3K27ac',
-  'atac-seq-reproducible-ctr-ATAC'
-  ]
+  baseline_model: 
+    - Coding_UCSCL2
+    - Conserved_LindbladTohL2
+    - CTCF_HoffmanL2
+    - DGF_ENCODEL2
+    - DHS_peaks_TrynkaL2
+    - DHS_TrynkaL2
+    - Enhancer_AnderssonL2
+    - Enhancer_HoffmanL2
+    - FetalDHS_TrynkaL2
+    - H3K27ac_HniszL2
+    - H3K27ac_PGC2L2
+    - H3K4me1_peaks_TrynkaL2
+    - H3K4me1_TrynkaL2
+    - H3K4me3_peaks_TrynkaL2
+    - H3K4me3_TrynkaL2
+    - H3K9ac_peaks_TrynkaL2
+    - H3K9ac_TrynkaL2
+    - Intron_UCSCL2
+    - PromoterFlanking_HoffmanL2
+    - Promoter_UCSCL2
+    - Repressed_HoffmanL2
+    - SuperEnhancer_HniszL2
+    - TFBS_ENCODEL2
+    - Transcr_HoffmanL2
+    - TSS_HoffmanL2
+    - UTR_3_UCSCL2
+    - UTR_5_UCSCL2
+    - WeakEnhancer_HoffmanL2
+    - GERP.NSL2
+    - GERP.RSsup4L2
+    - MAFbin1L2
+    - MAFbin2L2
+    - MAFbin3L2
+    - MAFbin4L2
+    - MAFbin5L2
+    - MAFbin6L2
+    - MAFbin7L2
+    - MAFbin8L2
+    - MAFbin9L2
+    - MAFbin10L2
+    - MAF_Adj_Predicted_Allele_AgeL2
+    - MAF_Adj_LLD_AFRL2
+    - Recomb_Rate_10kbL2
+    - Nucleotide_Diversity_10kbL2
+    - Backgrd_Selection_StatL2
+    - CpG_Content_50kbL2
+    - MAF_Adj_ASMCL2
+    - GTEx_eQTL_MaxCPPL2
+    - BLUEPRINT_H3K27acQTL_MaxCPPL2
+    - BLUEPRINT_H3K4me1QTL_MaxCPPL2
+    - BLUEPRINT_DNA_methylation_MaxCPPL2
+    - synonymousL2
+    - non_synonymousL2
+    - Conserved_Vertebrate_phastCons46wayL2
+    - Conserved_Mammal_phastCons46wayL2
+    - Conserved_Primate_phastCons46wayL2
+    - BivFlnkL2
+    - Human_Promoter_VillarL2
+    - Human_Enhancer_VillarL2
+    - Ancient_Sequence_Age_Human_PromoterL2
+    - Ancient_Sequence_Age_Human_EnhancerL2
+    - Human_Enhancer_Villar_Species_Enhancer_CountL2
+    - Human_Promoter_Villar_ExACL2
+  ptb_model:
+    full: [
+    'chip-seq-pooled-DSC1-dec-H3K27ac',
+    'atac-seq-pooled-DSC2-dec-ATAC',
+    'chip-seq-pooled-DSC1-ctr-H3K4me3',
+    'atac-seq-pooled-DSC3-ctr-ATAC',
+    'chip-seq-pooled-DSC3-ctr-H3K4me1',
+    'chip-seq-pooled-DSC1-ctr-H3K4me1',
+    'atac-seq-pooled-DSC1-ctr-ATAC',
+    'chip-seq-reproducible-ctr-H3K4me3',
+    'chip-seq-reproducible-dec-H3K27ac',
+    'chip-seq-reproducible-dec-H3K4me3',
+    'chip-seq-reproducible-dec-H3K4me1',
+    'chip-seq-reproducible-ctr-H3K4me1',
+    'atac-seq-reproducible-dec-ATAC',
+    'chip-seq-reproducible-ctr-H3K27ac',
+    'atac-seq-reproducible-ctr-ATAC',
+    'chip-seq-dec_up-H3K4me1',
+    'chip-seq-pooled-DSC3-dec-H3K4me3',
+    'atac-seq-pooled-DSC2-ctr-ATAC',
+    'chip-seq-dec_up-H3K4me3',
+    'chip-seq-pooled-DSC3-ctr-H3K4me3',
+    'atac-seq-dec_down-ATAC',
+    'atac-seq-pooled-DSC3-dec-ATAC',
+    'chip-seq-dec_up-H3K27ac',
+    'chip-seq-dec_down-H3K4me3',
+    'chip-seq-pooled-DSC2-ctr-H3K4me1',
+    'chip-seq-pooled-DSC1-dec-H3K4me1',
+    'chip-seq-pooled-DSC2-ctr-H3K27ac',
+    'chip-seq-pooled-DSC2-dec-H3K4me1',
+    'chip-seq-pooled-DSC1-dec-H3K4me3',
+    'atac-seq-dec_up-ATAC',
+    'chip-seq-pooled-DSC2-dec-H3K27ac',
+    'chip-seq-pooled-DSC3-dec-H3K27ac',
+    'chip-seq-dec_down-H3K27ac',
+    'chip-seq-pooled-DSC3-ctr-H3K27ac',
+    'chip-seq-dec_down-H3K4me1',
+    'chip-seq-pooled-DSC3-dec-H3K4me1',
+    'chip-seq-pooled-DSC2-dec-H3K4me3',
+    'chip-seq-pooled-DSC2-ctr-H3K4me3',
+    'atac-seq-pooled-DSC1-dec-ATAC',
+    'chip-seq-pooled-DSC1-ctr-H3K27ac']
+    reproducible: [
+    'chip-seq-reproducible-ctr-H3K4me3',
+    'chip-seq-reproducible-dec-H3K27ac',
+    'chip-seq-reproducible-dec-H3K4me3',
+    'chip-seq-reproducible-dec-H3K4me1',
+    'chip-seq-reproducible-ctr-H3K4me1',
+    'atac-seq-reproducible-dec-ATAC',
+    'chip-seq-reproducible-ctr-H3K27ac',
+    'atac-seq-reproducible-ctr-ATAC'
+    ]
 
 #+END_SRC
 
 #+BEGIN_SRC snakemake :tangle ../workflow/snakefile
 
+
+  import os
   import yaml
-
-    # configfile:
-    #     'config_base.yaml'
-
-  with open("../workflow/config.yaml") as stream:
-        config_d=yaml.safe_load(stream)
-
-  # config_base = config.pop('DL')
-
-  # config_d = {x:(config_base+y) for x,y in config.items()}
-  # config_d['DL']=config_base
+  from yaml import Loader
+  from typing import Any,IO
 
 
-
-  def get_annot_files(wildcards):
-      return {'anno_l2':expand(config_d['L2'] +"{anno_name}.{chrom}.l2.ldscore.gz",chrom=range(1,23),anno_name=all_annot[wildcards.anno_name]),
-              'baseline_l2':expand(config_d['L2'] +"baseline/baselineLD.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
-              'gwasf':config_d['GWAS'] +"ldsc_input/ptb_gwas.sumstats.gz",
-              'baselinef':  expand(config_d['WEIGHTS'] +"weights.hm3_noMHC.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
-              'freqf':  expand(config_d['FRQF'] +"1000G.EUR.QC.{chrom}.frq",chrom=range(1,23)),
-      }
-
+  def host_loader(loader: yaml.loader.Loader,node: yaml.Node) -> Any:
+        fields = loader.construct_mapping(node,deep=True)
+        options=fields['options']
+        # print([options[name] for name in options.keys()])
+        ret_opt = [name for name in options.keys() if os.path.exists(options[name])]
+        # print(ret_opt)
+        return ret_opt[0]
 
 
-  include: "dl_snakefile"
-  include: "gwas_snakefile"
+  def dep_loader(loader: yaml.loader.Loader,node: yaml.Node) -> Any:
+        options = loader.construct_mapping(node,deep=True)
+        host = options['host']
+        pref = options['pref']
+        # print(pref)
+        host =options['host']
+        path = options['path']
+        full_path = pref+path[host] if pref is not None else path[host]
+        return full_path
+
+
+
+  yaml.Loader.add_constructor('!Host', host_loader)
+  yaml.Loader.add_constructor('!Dep', dep_loader)
+
+
+
+  with open("../workflow/config_base.yaml") as stream:
+        config=yaml.load(stream)
+
+  config_d = config['paths']
+  config_e = config['envs']
+
+
   with open("annots.yaml", 'r') as stream:
       all_annot = yaml.safe_load(stream)
       #(all_annot)
@@ -133,10 +293,13 @@ I start off by defining some absolute directories that will be referred to throu
 
   localrules: all, get_hm3_snplist,get_plinkfiles,get_frq,get_weights
 
+
+  include: "dl_snakefile"
+  include: "gwas_snakefile"
   rule all:
       input:
           config_d['GWAS'] +"ldsc_input/ptb_gwas.sumstats.gz",
-            "reproducible.results"
+          "reproducible.results"
 
 
 
@@ -147,11 +310,21 @@ I start off by defining some absolute directories that will be referred to throu
 The first step is to download some LD score regression stuff from the web. In particular we want a gzipped tarball of the hapmap 3 SNPs.
 
 #+BEGIN_SRC snakemake :tangle ../workflow/dl_snakefile
-rule get_hm3_snplist:
-    output:
-        temp(config_d['DL'] +"hapmap3_snps.tgz")
-    shell:
-        "wget https://data.broadinstitute.org/alkesgroup/LDSCORE/hapmap3_snps.tgz -O {output}"
+
+
+
+  rule get_gest_dur_gwas:
+      output:
+          temp(config_d['GWAS']+"Fetal_gest_duration_NComms2019.txt.gz")
+      shell:
+          "wget http://mccarthy.well.ox.ac.uk/publications/2019/EggGestationalDuration_NatureCommunications/Fetal_gest_duration_NComms2019.txt.gz"
+
+
+  rule get_hm3_snplist:
+      output:
+          temp(config_d['DL'] +"hapmap3_snps.tgz")
+      shell:
+          "wget https://data.broadinstitute.org/alkesgroup/LDSCORE/hapmap3_snps.tgz -O {output}"
 #+END_SRC
 
 Next we'll unzip the files and put them somewhere on disk.
@@ -300,7 +473,7 @@ how to get to `meta.stat` the PTB gwas file.  First thing is to convert it to HD
       output:
           outputf=config_d['GWAS'] +"ptb_gwas.h5"
       conda:
-          "../envs/eigenh5.yml"
+          config_e['r']
       script:
           "../scripts/gwas2h5.R"
 
@@ -385,13 +558,14 @@ Next is to write some code to pull out the indices with the matching rsids (usin
 
                                           #%>% mutate(snp_struct = as_ldmap_snp(snp_struct))  %>%
   stopifnot(all(jdf$chrom == schrom))
+  stopifnot(nrow(jdf)>0)
   ## stopifnot(nrow(jdf) == nr_index_df)
 
     jdf  %>% rename(beta =  {{beta_col}},
                     se =  {{se_col}},
                     N =  {{N_col}}) %>%
       dplyr::distinct(rsid, .keep_all = TRUE) %>% 
-      dplyr::transmute(SNP = paste0("rs",rsid), N = N, Z = beta / se, A1 = A1, A2 = A2,P=pval) %>%
+      dplyr::transmute(SNP = rsid, N = N, Z = beta / se, A1 = A1, A2 = A2,P=pval) %>%
       vroom::vroom_write(output_f,delim = "\t")
 #+END_SRC
 
@@ -408,9 +582,6 @@ library(magrittr)
 #+END_SRC
 
 
-
-
-
 #+BEGIN_SRC snakemake :tangle ../workflow/gwas_snakefile
 
   rule indexgwas2h5:
@@ -422,7 +593,7 @@ library(magrittr)
       output:
           outputf=temp(config_d['GWAS'] +"hm3_index/ptb_gwas_hm_chr{chrom}.tsv")
       conda:
-          "../envs/eigenh5.yml"
+          config_e['r']
       script:
           "../scripts/index_gwas.R"
 
@@ -434,7 +605,7 @@ library(magrittr)
       output:
           outputf=temp(config_d['GWAS'] +"ldsc_input/pre_ptb_gwas.sumstats.gz")
       conda:
-          "../envs/eigenh5.yml"
+          config_e['r']
       script:
           "../scripts/gen_ldsc_sumstats.R"
 
@@ -445,7 +616,7 @@ library(magrittr)
       params:
           outputf=config_d['GWAS'] +"ldsc_input/ptb_gwas"
       conda:
-          "../envs/ldsc.yml"
+          config_e['ldsc']
       output:
           outputf=config_d['GWAS'] +"ldsc_input/ptb_gwas.sumstats.gz",
       log:
@@ -512,8 +683,6 @@ snakemake -n
       shell:
           "wget https://data.broadinstitute.org/alkesgroup/LDSCORE/1000G_Phase3_plinkfiles.tgz -O {output}"
 
-
-
   rule gunzip_plinkfiles:
       input:
           config_d['DL'] +"1000G_Phase3_plinkfiles.tgz"
@@ -553,11 +722,13 @@ snakemake -n
 
   rule unzip_annot:
       input:
-          config_d['BED'] + "{annot}.bed.bz2"
+          config_d['BED'] + "{annot}.bed.gz"
       output:
           temp(config_d['BED'] + "{annot}.bed")
+      wildcard_constraints:
+          annot="[^/]+"
       shell:
-          "bzip2 -cd {input} > {output}"
+          "gzip -cd {input} > {output}"
 
 
   rule make_annot:
@@ -565,13 +736,13 @@ snakemake -n
           anno_bed=config_d['BED'] +"{annot}.bed",
           bim=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.bim"
       output:
-          annot = config_d['ANNO'] +"{annot}/{annot}.{chrom}.annot.gz"
+          annot = config_d['L2'] +"{annot}.{chrom}.annot.gz"
       params:
           anno_name='{annot}'
       conda:
-          "../envs/ldsc.yml"
+          config_e['ldsc']
       shell:
-          "python2 ../make_annot.py --bed-file {input.anno_bed} --bimfile {input.bim} --annot-file {output.annot}"
+          "python2 ../make_annot.py --bed-file {input.anno_bed} --bimfile {input.bim} --annot-file {output.annot} --annot-name {params.anno_name}"
 
   rule pull_rsid:
       input:
@@ -580,13 +751,12 @@ snakemake -n
           temp(config_d["L2"]+"snplist/{chrom}.snplist.txt")
       shell:
           "zcat {input} | cut -f 2 | tail -n +2 > {output}"
-        
 
 
 
   rule cmp_ldscores:
       input:
-          anno_bed=config_d['ANNO'] +"{annot}/{annot}.{chrom}.annot.gz",
+          anno_bed=config_d['L2'] +"{annot}.{chrom}.annot.gz",
           snplistf=config_d["L2"]+"snplist/{chrom}.snplist.txt",
           bim=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.bim",
           bed=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.bed",
@@ -598,11 +768,12 @@ snakemake -n
       params:
           plink=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}",
           odir=config_d['L2']+"{annot}.{chrom}"
+      # wildcard_constraints:
+      #     annot="[^/]"
       conda:
-          "../envs/ldsc.yml"
+          config_e['ldsc']
       shell:
-          "python2 ../ldsc.py --l2 --bfile {params.plink} --extract {input.snplistf} --ld-wind-cm 1 --annot {input.anno_bed} --thin-annot --out {params.odir} "
-
+          "python2 ../ldsc.py --l2 --bfile {params.plink} --print-snps {input.snplistf} --ld-wind-cm 1 --thin-annot --annot {input.anno_bed} --out {params.odir} "
 
   # rule cmp_ldscores_baseline:
   #     input:
@@ -618,9 +789,9 @@ snakemake -n
   #         plink=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}",
   #         odir=config_d['L2']+"baselineLD/{annot}.{chrom}"
   #     conda:
-  #         "../envs/ldsc.yml"
+  #         config_e['ldsc']
   #     shell:
-  #         "python2 ../ldsc.py --l2 --bfile {params.plink} --ld-wind-cm 1 --annot {input.anno_bed} --thin-annot --out {params.odir} "
+  #         "python2 ../ldsc.py --l2 --bfile {params.plink} --ld-wind-cm 1 --annot {input.anno_bed}  --out {params.odir} "
 
   # def ldsc_fun(wildcards):
   #     {tchrom: expand(config_d['L2'] +"{anno_name}.{chrom}.l2.ldscore.gz",chrom=[tchrom],anno_name=['baseline' *all_annot[wildcards.anno_name]]) for tchrom in range(1,23)}
@@ -640,98 +811,310 @@ snakemake -n
   library(tidyverse)
   library(fs)
 
-  file_list <- snakemake@input
+  save.image("wsl.RDS")
+  stop()
+  setwd("~/Dropbox/Repos/ldsc/workflow")
+  load("wsl.RDS")
 
+  ## yam
+  ## l_file <- yaml::yaml.load_file("../workflow/annots.yaml")
+
+  feat_list <- snakemake@params[["features"]]
+  baseline_feat <- snakemake@params[["baseline_features"]]
+  annot_name <- snakemake@params[["annot_name"]]
+  l2dir <- snakemake@params[["L2"]]
+
+  stopifnot(!is.null(feat_list),!is.null(baseline_feat),!is.null(annot_name),!is.null(l2dir))
+
+#+END_SRC
+
+#+BEGIN_SRC R :tangle ../scripts/check_ldscfiles.R
+   file_df <- tibble::as_tibble(expand.grid(feature = feat_list, chrom = 1:22,stringsAsFactors = FALSE)) %>%
+    dplyr::mutate(
+             path = fs::path(l2dir,
+                             paste0( feature, ".", chrom, ".l2.ldscore.gz")),
+             annot_path = fs::path(l2dir,
+                             paste0( feature, ".", chrom, ".annot.gz")),
+             baseline_path = fs::path(l2dir,"baseline/", paste0("baselineLD.", chrom, ".l2.ldscore.gz")),
+             baseline_annot_path = fs::path(l2dir,"baseline/", paste0("baselineLD.", chrom, ".annot.gz")),
+             new_path = fs::path(l2dir,"new_baseline/", paste0(annot_name,".", chrom, ".l2.ldscore.gz")),
+             new_annot_path = fs::path(l2dir,"new_baseline/", paste0(annot_name,".", chrom, "annot.gz"))
+                 )
+
+
+
+
+
+  stopifnot(all(fs::file_exists(c(file_df$path,file_df$baseline_path,file_df$annot_path,file_df$baseline_annot_path))))
+#+END_SRC
+
+#+BEGIN_SRC R :tangle ../scripts/check_ldscfiles.R
   spec <- cols(
-    CHR = col_double(),
-    SNP = col_character(),
-    BP = col_double(),
-    L2 = col_skip()
+    CHR = col_skip(),
+    SNP = col_skip(),
+    BP = col_skip(),
+    L2 = col_double()
   )
-
   spec_base <- cols(
     CHR = col_double(),
     SNP = col_character(),
     BP = col_double(),
-    CM = col_double(),
-    MAF = col_double(),
-    base = col_double(),
-    Coding_UCSC = col_double(),
-    Coding_UCSC.extend.500 = col_double(),
-    Conserved_LindbladToh = col_double(),
-    Conserved_LindbladToh.extend.500 = col_double(),
-    CTCF_Hoffman = col_double(),
-    CTCF_Hoffman.extend.500 = col_double(),
-    DGF_ENCODE = col_double(),
-    DGF_ENCODE.extend.500 = col_double(),
-    DHS_peaks_Trynka = col_double(),
-    DHS_Trynka = col_double(),
-    DHS_Trynka.extend.500 = col_double(),
-    Enhancer_Andersson = col_double(),
-    Enhancer_Andersson.extend.500 = col_double(),
-    Enhancer_Hoffman = col_double(),
-    Enhancer_Hoffman.extend.500 = col_double(),
-    FetalDHS_Trynka = col_double(),
-    FetalDHS_Trynka.extend.500 = col_double(),
-    H3K27ac_Hnisz = col_double(),
-    H3K27ac_Hnisz.extend.500 = col_double(),
-    H3K27ac_PGC2 = col_double(),
-    H3K27ac_PGC2.extend.500 = col_double(),
-    H3K4me1_peaks_Trynka = col_double(),
-    H3K4me1_Trynka = col_double(),
-    H3K4me1_Trynka.extend.500 = col_double(),
-    H3K4me3_peaks_Trynka = col_double(),
-    H3K4me3_Trynka = col_double(),
-    H3K4me3_Trynka.extend.500 = col_double(),
-    H3K9ac_peaks_Trynka = col_double(),
-    H3K9ac_Trynka = col_double(),
-    H3K9ac_Trynka.extend.500 = col_double(),
-    Intron_UCSC = col_double(),
-    Intron_UCSC.extend.500 = col_double(),
-    PromoterFlanking_Hoffman = col_double(),
-    PromoterFlanking_Hoffman.extend.500 = col_double(),
-    Promoter_UCSC = col_double(),
-    Promoter_UCSC.extend.500 = col_double(),
-    Repressed_Hoffman = col_double(),
-    Repressed_Hoffman.extend.500 = col_double(),
-    SuperEnhancer_Hnisz = col_double(),
-    SuperEnhancer_Hnisz.extend.500 = col_double(),
-    TFBS_ENCODE = col_double(),
-    TFBS_ENCODE.extend.500 = col_double(),
-    Transcribed_Hoffman = col_double(),
-    Transcribed_Hoffman.extend.500 = col_double(),
-    TSS_Hoffman = col_double(),
-    TSS_Hoffman.extend.500 = col_double(),
-    UTR_3_UCSC = col_double(),
-    UTR_3_UCSC.extend.500 = col_double(),
-    UTR_5_UCSC = col_double(),
-    UTR_5_UCSC.extend.500 = col_double(),
-    WeakEnhancer_Hoffman = col_double(),
-    WeakEnhancer_Hoffman.extend.500 = col_double()
+    baseL2 = col_double(),
+    Coding_UCSCL2 = col_double(),
+    Coding_UCSC.flanking.500L2 = col_double(),
+    Conserved_LindbladTohL2 = col_double(),
+    Conserved_LindbladToh.flanking.500L2 = col_double(),
+    CTCF_HoffmanL2 = col_double(),
+    CTCF_Hoffman.flanking.500L2 = col_double(),
+    DGF_ENCODEL2 = col_double(),
+    DGF_ENCODE.flanking.500L2 = col_double(),
+    DHS_peaks_TrynkaL2 = col_double(),
+    DHS_TrynkaL2 = col_double(),
+    DHS_Trynka.flanking.500L2 = col_double(),
+    Enhancer_AnderssonL2 = col_double(),
+    Enhancer_Andersson.flanking.500L2 = col_double(),
+    Enhancer_HoffmanL2 = col_double(),
+    Enhancer_Hoffman.flanking.500L2 = col_double(),
+    FetalDHS_TrynkaL2 = col_double(),
+    FetalDHS_Trynka.flanking.500L2 = col_double(),
+    H3K27ac_HniszL2 = col_double(),
+    H3K27ac_Hnisz.flanking.500L2 = col_double(),
+    H3K27ac_PGC2L2 = col_double(),
+    H3K27ac_PGC2.flanking.500L2 = col_double(),
+    H3K4me1_peaks_TrynkaL2 = col_double(),
+    H3K4me1_TrynkaL2 = col_double(),
+    H3K4me1_Trynka.flanking.500L2 = col_double(),
+    H3K4me3_peaks_TrynkaL2 = col_double(),
+    H3K4me3_TrynkaL2 = col_double(),
+    H3K4me3_Trynka.flanking.500L2 = col_double(),
+    H3K9ac_peaks_TrynkaL2 = col_double(),
+    H3K9ac_TrynkaL2 = col_double(),
+    H3K9ac_Trynka.flanking.500L2 = col_double(),
+    Intron_UCSCL2 = col_double(),
+    Intron_UCSC.flanking.500L2 = col_double(),
+    PromoterFlanking_HoffmanL2 = col_double(),
+    PromoterFlanking_Hoffman.flanking.500L2 = col_double(),
+    Promoter_UCSCL2 = col_double(),
+    Promoter_UCSC.flanking.500L2 = col_double(),
+    Repressed_HoffmanL2 = col_double(),
+    Repressed_Hoffman.flanking.500L2 = col_double(),
+    SuperEnhancer_HniszL2 = col_double(),
+    SuperEnhancer_Hnisz.flanking.500L2 = col_double(),
+    TFBS_ENCODEL2 = col_double(),
+    TFBS_ENCODE.flanking.500L2 = col_double(),
+    Transcr_HoffmanL2 = col_double(),
+    Transcr_Hoffman.flanking.500L2 = col_double(),
+    TSS_HoffmanL2 = col_double(),
+    TSS_Hoffman.flanking.500L2 = col_double(),
+    UTR_3_UCSCL2 = col_double(),
+    UTR_3_UCSC.flanking.500L2 = col_double(),
+    UTR_5_UCSCL2 = col_double(),
+    UTR_5_UCSC.flanking.500L2 = col_double(),
+    WeakEnhancer_HoffmanL2 = col_double(),
+    WeakEnhancer_Hoffman.flanking.500L2 = col_double(),
+    GERP.NSL2 = col_double(),
+    GERP.RSsup4L2 = col_double(),
+    MAFbin1L2 = col_double(),
+    MAFbin2L2 = col_double(),
+    MAFbin3L2 = col_double(),
+    MAFbin4L2 = col_double(),
+    MAFbin5L2 = col_double(),
+    MAFbin6L2 = col_double(),
+    MAFbin7L2 = col_double(),
+    MAFbin8L2 = col_double(),
+    MAFbin9L2 = col_double(),
+    MAFbin10L2 = col_double(),
+    MAF_Adj_Predicted_Allele_AgeL2 = col_double(),
+    MAF_Adj_LLD_AFRL2 = col_double(),
+    Recomb_Rate_10kbL2 = col_double(),
+    Nucleotide_Diversity_10kbL2 = col_double(),
+    Backgrd_Selection_StatL2 = col_double(),
+    CpG_Content_50kbL2 = col_double(),
+    MAF_Adj_ASMCL2 = col_double(),
+    GTEx_eQTL_MaxCPPL2 = col_double(),
+    BLUEPRINT_H3K27acQTL_MaxCPPL2 = col_double(),
+    BLUEPRINT_H3K4me1QTL_MaxCPPL2 = col_double(),
+    BLUEPRINT_DNA_methylation_MaxCPPL2 = col_double(),
+    synonymousL2 = col_double(),
+    non_synonymousL2 = col_double(),
+    Conserved_Vertebrate_phastCons46wayL2 = col_double(),
+    Conserved_Vertebrate_phastCons46way.flanking.500L2 = col_double(),
+    Conserved_Mammal_phastCons46wayL2 = col_double(),
+    Conserved_Mammal_phastCons46way.flanking.500L2 = col_double(),
+    Conserved_Primate_phastCons46wayL2 = col_double(),
+    Conserved_Primate_phastCons46way.flanking.500L2 = col_double(),
+    BivFlnkL2 = col_double(),
+    BivFlnk.flanking.500L2 = col_double(),
+    Human_Promoter_VillarL2 = col_double(),
+    Human_Promoter_Villar.flanking.500L2 = col_double(),
+    Human_Enhancer_VillarL2 = col_double(),
+    Human_Enhancer_Villar.flanking.500L2 = col_double(),
+    Ancient_Sequence_Age_Human_PromoterL2 = col_double(),
+    Ancient_Sequence_Age_Human_Promoter.flanking.500L2 = col_double(),
+    Ancient_Sequence_Age_Human_EnhancerL2 = col_double(),
+    Ancient_Sequence_Age_Human_Enhancer.flanking.500L2 = col_double(),
+    Human_Enhancer_Villar_Species_Enhancer_CountL2 = col_double(),
+    Human_Promoter_Villar_ExACL2 = col_double(),
+    Human_Promoter_Villar_ExAC.flanking.500L2 = col_double()
   )
 
-  file_list <- fs::dir_ls("/run/media/nwknoblauch/Data/L2",regexp =  ".+\\.([0-9]+)\\.l2.ldscore.gz$")
-  l2chrom <- str_replace(file_list,".+\\.([0-9]+)\\.l2.ldscore.gz$","\\1")
 
-  file_df <- tibble(path =file_list,chrom = l2chrom) 
 
-  ct_df <- pmap_df(file_df,function(path,chrom) {
-    tibble(rows = (vroom::vroom(path,delim = "\t",col_types = spec) %>% distinct() %>% nrow()),
-           path = path,
-           chrom = chrom)})
+  anno_cols <- cols(
+    CHR = col_double(),
+    BP = col_double(),
+    SNP = col_character(),
+    CM = col_double(),
+    base = col_double(),
+    Coding_UCSC = col_double(),
+    Coding_UCSC.flanking.500 = col_double(),
+    Conserved_LindbladToh = col_double(),
+    Conserved_LindbladToh.flanking.500 = col_double(),
+    CTCF_Hoffman = col_double(),
+    CTCF_Hoffman.flanking.500 = col_double(),
+    DGF_ENCODE = col_double(),
+    DGF_ENCODE.flanking.500 = col_double(),
+    DHS_peaks_Trynka = col_double(),
+    DHS_Trynka = col_double(),
+    DHS_Trynka.flanking.500 = col_double(),
+    Enhancer_Andersson = col_double(),
+    Enhancer_Andersson.flanking.500 = col_double(),
+    Enhancer_Hoffman = col_double(),
+    Enhancer_Hoffman.flanking.500 = col_double(),
+    FetalDHS_Trynka = col_double(),
+    FetalDHS_Trynka.flanking.500 = col_double(),
+    H3K27ac_Hnisz = col_double(),
+    H3K27ac_Hnisz.flanking.500 = col_double(),
+    H3K27ac_PGC2 = col_double(),
+    H3K27ac_PGC2.flanking.500 = col_double(),
+    H3K4me1_peaks_Trynka = col_double(),
+    H3K4me1_Trynka = col_double(),
+    H3K4me1_Trynka.flanking.500 = col_double(),
+    H3K4me3_peaks_Trynka = col_double(),
+    H3K4me3_Trynka = col_double(),
+    H3K4me3_Trynka.flanking.500 = col_double(),
+    H3K9ac_peaks_Trynka = col_double(),
+    H3K9ac_Trynka = col_double(),
+    H3K9ac_Trynka.flanking.500 = col_double(),
+    Intron_UCSC = col_double(),
+    Intron_UCSC.flanking.500 = col_double(),
+    PromoterFlanking_Hoffman = col_double(),
+    PromoterFlanking_Hoffman.flanking.500 = col_double(),
+    Promoter_UCSC = col_double(),
+    Promoter_UCSC.flanking.500 = col_double(),
+    Repressed_Hoffman = col_double(),
+    Repressed_Hoffman.flanking.500 = col_double(),
+    SuperEnhancer_Hnisz = col_double(),
+    SuperEnhancer_Hnisz.flanking.500 = col_double(),
+    TFBS_ENCODE = col_double(),
+    TFBS_ENCODE.flanking.500 = col_double(),
+    Transcr_Hoffman = col_double(),
+    Transcr_Hoffman.flanking.500 = col_double(),
+    TSS_Hoffman = col_double(),
+    TSS_Hoffman.flanking.500 = col_double(),
+    UTR_3_UCSC = col_double(),
+    UTR_3_UCSC.flanking.500 = col_double(),
+    UTR_5_UCSC = col_double(),
+    UTR_5_UCSC.flanking.500 = col_double(),
+    WeakEnhancer_Hoffman = col_double(),
+    WeakEnhancer_Hoffman.flanking.500 = col_double(),
+    GERP.NS = col_double(),
+    GERP.RSsup4 = col_double(),
+    MAFbin1 = col_double(),
+    MAFbin2 = col_double(),
+    MAFbin3 = col_double(),
+    MAFbin4 = col_double(),
+    MAFbin5 = col_double(),
+    MAFbin6 = col_double(),
+    MAFbin7 = col_double(),
+    MAFbin8 = col_double(),
+    MAFbin9 = col_double(),
+    MAFbin10 = col_double(),
+    MAF_Adj_Predicted_Allele_Age = col_double(),
+    MAF_Adj_LLD_AFR = col_double(),
+    Recomb_Rate_10kb = col_double(),
+    Nucleotide_Diversity_10kb = col_double(),
+    Backgrd_Selection_Stat = col_double(),
+    CpG_Content_50kb = col_double(),
+    MAF_Adj_ASMC = col_double(),
+    GTEx_eQTL_MaxCPP = col_double(),
+    BLUEPRINT_H3K27acQTL_MaxCPP = col_double(),
+    BLUEPRINT_H3K4me1QTL_MaxCPP = col_double(),
+    BLUEPRINT_DNA_methylation_MaxCPP = col_double(),
+    synonymous = col_double(),
+    non_synonymous = col_double(),
+    Conserved_Vertebrate_phastCons46way = col_double(),
+    Conserved_Vertebrate_phastCons46way.flanking.500 = col_double(),
+    Conserved_Mammal_phastCons46way = col_double(),
+    Conserved_Mammal_phastCons46way.flanking.500 = col_double(),
+    Conserved_Primate_phastCons46way = col_double(),
+    Conserved_Primate_phastCons46way.flanking.500 = col_double(),
+    BivFlnk = col_double(),
+    BivFlnk.flanking.500 = col_double(),
+    Human_Promoter_Villar = col_double(),
+    Human_Promoter_Villar.flanking.500 = col_double(),
+    Human_Enhancer_Villar = col_double(),
+    Human_Enhancer_Villar.flanking.500 = col_double(),
+    Ancient_Sequence_Age_Human_Promoter = col_double(),
+    Ancient_Sequence_Age_Human_Promoter.flanking.500 = col_double(),
+    Ancient_Sequence_Age_Human_Enhancer = col_double(),
+    Ancient_Sequence_Age_Human_Enhancer.flanking.500 = col_double(),
+    Human_Enhancer_Villar_Species_Enhancer_Count = col_double(),
+    Human_Promoter_Villar_ExAC = col_double(),
+    Human_Promoter_Villar_ExAC.flanking.500 = col_double()
+  )
+#+END_SRC
 
-  baseline_f <- filter(file_df,str_detect(path,"baseline")) %>% rename(baseline_path = path)
-  idf <- filter(file_df,str_detect(path,"baseline",negate = TRUE)) %>% distinct(chrom, .keep_all = TRUE) %>% inner_join(baseline_f) %>% mutate(newpath = str_replace(baseline_path,"baseline","new_baseline")) %>% arrange(as.integer(chrom))
-  ## ctr  <- group_by(ct_df, chrom)  %>%
-  ##   summarise(nrows = length(unique(rows)))
-  pwalk(idf,function(path,chrom,baseline_path,newpath) {
-    cat(path,",",baseline_path,"\n")
-    tidf <- 
-    semi_join(vroom::vroom(baseline_path,delim = "\t",col_types = spec_base),
-              vroom::vroom(path,delim = "\t",col_types = spec)) %>% vroom::vroom_write(path = newpath,delim = "\t")
-    })
+#+BEGIN_SRC R :tangle ../scripts/check_ldscfiles.R
+
+  file_df <- nest(file_df,feat_data = c(feature,path,annot_path))
+  modify_cols <- function(cols,old,new) {
+    cols$cols <- set_names(cols$cols, ~dplyr::if_else(.== old,new, .))
+    return(cols)
+  }
+
+
+  feat_fun <- function(f,feat) {
+    return(tibble::tibble(!!feat := scan(f,what = numeric(),skip = 1)))
+    }
+
+
+  pwalk(file_df,function(baseline_path, chrom, feat_data, new_path, new_annot_path,baseline_annot_path) {
+    cat("Now on",chrom,"\n")
+    keep_cols <- c("CHR","SNP","BP","baseL2",baseline_feat)
+
+    bldcols <- names(spec_base$cols)
+    bacols <- names(anno_cols$cols)
+    stopifnot(all(keep_cols %in%  names(spec_base$cols)))
+    stopifnot(all(keep_cols %in%  names(anno_cols$cols)))
+    bad_good_cols <- keep_cols[!keep_cols %in%  names(anno_cols$cols)]
   
+    bad_cols <- names(spec_base$cols)[!(names(spec_base$cols) %in% keep_cols)]
+    bad_anno_cols <- str_replace(bad_cols,"L2$","")
+
+    new_base <- spec_base
+    new_anno_spec <- anno_cols
+    for (bc in seq_along(bad_cols)) {
+      new_base$cols[[bad_cols[bc]]] <- col_skip()
+      new_anno_spec$cols[[bad_anno_cols[bc]]] <- col_skip()
+    }
   
+    feat_data <- mutate(feat_data,col_spec = map(feature, ~modify_cols(spec, "L2" , .x)))
+    annot_df <- map2_dfc(feat_data$annot_path,feat_data$feature, ~feat_fun(.x, .y))
+    o_anno_path <- bind_cols(vroom::vroom(baseline_annot_path,col_types = new_anno_spec,delim = "\t"),annot_df)
+    tannot <- read_delim(feat_data$annot_path[1],delim = "\t")
+    lddf <- pmap_dfc(feat_data,function(feature,path,col_spec, ...) {
+      vroom::vroom(path,col_names = names(col_spec$cols),col_types = col_spec,delim = "\t",skip = 1L)})
+    baseline_df <- bind_cols(vroom::vroom(baseline_path,delim = "\t",col_types = new_base),lddf)
+    vroom::vroom_write(baseline_df,new_path,delim = "\t")
+  })
+
+
+
+
+om(baseline_path,delim = "\t",col_types = new_base),lddf)
+    vroom::vroom_write(baseline_df,new_path,delim = "\t")
+  })
 
 
 #+END_SRC
@@ -741,25 +1124,54 @@ snakemake -n
 
 #+BEGIN_SRC snakemake :tangle ../workflow/dl_snakefile
 
-      rule run_ldsc:
-          input:
-              unpack(get_annot_files)
-          output:
-              dataf="{anno_name}.results"
-          log:
-              tempf=temp("{anno_name}.log")
-          params:
-            annot=lambda wildcards: ','.join(expand(config_d['L2']+"{anno_name}.",anno_name=all_annot[wildcards.anno_name])),
-            baseline=config_d['L2']+"baseline/baselineLD.",
-            weights=config_d['WEIGHTS']+"weights.hm3_noMHC.",
-            frq=config_d['FRQF'] +"1000G.EUR.QC.",
-            odir="{anno_name}"
-          conda:
-              "../envs/ldsc.yml"
-          shell:
-              """python2 ../ldsc.py --h2 {input.gwasf} --ref-ld-chr {params.annot},{params.baseline} --w-ld-chr {params.weights} --thin-annot --overlap-annot --frqfile-chr {params.frq} --out {params.odir} """
+
+  def new_get_annot_files(wildcards):
+      return {'anno_l2':expand(config_d['L2'] +"{annot}.{chrom}.l2.ldscore.gz",chrom=range(1,23),annot=all_annot['ptb_model'][wildcards.anno_name]),
+              'baseline_l2':expand(config_d['L2'] +"baseline/baselineLD.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
+              'gwasf':config_d['GWAS'] +"ldsc_input/ptb_gwas.sumstats.gz",
+              'baselinef':  expand(config_d['WEIGHTS'] +"weights.hm3_noMHC.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
+              'freqf':  expand(config_d['FRQF'] +"1000G.EUR.QC.{chrom}.frq",chrom=range(1,23)),
+      }
 
 
+
+  def get_merge_annot_files(wildcards):
+      return {'anno_l2':expand(config_d['L2'] +"{annot}.{chrom}.l2.ldscore.gz",chrom=range(1,23),annot=all_annot['ptb_model'][wildcards.anno_name]),
+              'annof':expand(config_d['L2'] +"{annot}.{chrom}.annot.gz",chrom=range(1,23),annot=all_annot['ptb_model'][wildcards.anno_name]),
+              'baseline_l2':expand(config_d['L2'] +"baseline/baselineLD.{chrom}.l2.ldscore.gz",chrom=range(1,23))
+        }
+
+  rule merge_ldsc:
+      input:
+          unpack(get_merge_annot_files)   
+      output:
+          dataf=expand(config_d["L2"]+"new_baseline/{{anno_name}}.{chrom}.l2.ldscore.gz",chrom=range(1,23))
+      params:
+          L2=config_d['L2'],
+          baseline_features=all_annot['baseline_model'],
+          features=lambda wildcards: all_annot['ptb_model'][wildcards.anno_name],
+          annot_name="{anno_name}"
+      script:
+          "../scripts/check_ldscfiles.R"
+
+  rule run_ldsc:
+      input:
+          anno_ld=expand(config_d["L2"]+"new_baseline/{{anno_name}}.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
+          baselinef=  expand(config_d['WEIGHTS'] +"weights.hm3_noMHC.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
+          gwasf=config_d['GWAS'] +"ldsc_input/ptb_gwas.sumstats.gz"
+      output:
+          dataf="{anno_name}.results"
+      log:
+          tempf=temp("{anno_name}.log")
+      params:
+          annot=config_d["L2"]+"new_baseline/{anno_name}",
+          weights=config_d['WEIGHTS']+"weights.hm3_noMHC.",
+          frq=config_d['FRQF'] +"1000G.EUR.QC.",
+          odir="{anno_name}"
+      conda:
+          config_e['ldsc']
+      shell:
+          """python2 ../ldsc.py --h2 {input.gwasf} --ref-ld-chr {params.annot} --w-ld-chr {params.weights} --overlap-annot --frqfile-chr {params.frq} --out {params.odir} """
 
 
 
