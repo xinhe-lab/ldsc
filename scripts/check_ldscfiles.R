@@ -1,21 +1,25 @@
 library(vroom)
-library(tidyverse)
-library(fs)
+  library(dplyr)
+library(purrr)
+library(readr)
 
-save.image("wsl.RDS")
-stop()
-setwd("~/Dropbox/Repos/ldsc/workflow")
-load("wsl.RDS")
 
-## yam
-## l_file <- yaml::yaml.load_file("../workflow/annots.yaml")
+  library(fs)
 
-feat_list <- snakemake@params[["features"]]
-baseline_feat <- snakemake@params[["baseline_features"]]
-annot_name <- snakemake@params[["annot_name"]]
-l2dir <- snakemake@params[["L2"]]
+  ## save.image("wsl.RDS")
+  ## stop()
+  ## setwd("~/Dropbox/Repos/ldsc/workflow")
+  ## load("wsl.RDS")
 
-stopifnot(!is.null(feat_list),!is.null(baseline_feat),!is.null(annot_name),!is.null(l2dir))
+  ## yam
+  ## l_file <- yaml::yaml.load_file("../workflow/annots.yaml")
+
+  feat_list <- snakemake@params[["features"]]
+  baseline_feat <- snakemake@params[["baseline_features"]]
+  annot_name <- snakemake@params[["annot_name"]]
+  l2dir <- snakemake@params[["L2"]]
+
+  stopifnot(!is.null(feat_list),!is.null(baseline_feat),!is.null(annot_name),!is.null(l2dir))
 
 file_df <- tibble::as_tibble(expand.grid(feature = feat_list, chrom = 1:22,stringsAsFactors = FALSE)) %>%
   dplyr::mutate(

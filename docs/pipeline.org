@@ -1,11 +1,11 @@
 ** Config
 
-I start off by defining some absolute directories that will be referred to throughout the script.  Hopefully I only have to change these 
+I start off by defining some absolute directories that will be referred to throughout the script.  
 
 
-#+BEGIN_SRC yaml :tangle ../workflow/config_base.yaml
+#+BEGIN_SRC yaml :tangle '("../workflow/config_base.yaml" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../workflow/config_base.yaml" "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../workflow/config_base.yaml")
   ---
-  flag_file: &hst !Host {options: {midway2: "/project2", gardner: "/gpfs/data/xhe-lab/", desktop: "/run/media/nwknoblauch/Data"}}
+  flag_file: &hst !Host {options: {midway2: "/project2", gardner: "/gpfs/data/xhe-lab/", desktop: "/run/media/nwknoblauch/Data"} }
   paths: 
     'DL': &dl  !Dep {host: *hst, pref:  null, path: { midway2: "/project2/xinhe/", gardner: "/gpfs/data/xhe-lab/", desktop: "/run/media/nwknoblauch/Data/"}}
     '1KG':     !Dep {host: *hst, pref: *dl, path: {midway2: &1kg "1kg/", gardner: *1kg , desktop: *1kg} }
@@ -16,13 +16,31 @@ I start off by defining some absolute directories that will be referred to throu
     'FRQF':    !Dep {host: *hst, pref: *dl, path: {midway2: &frq "1kg/1000G_Phase3_frq/", gardner: *frq, desktop: "1kg/1000G_Phase3_frq/"}} 
     'GWAS':    !Dep {host: *hst, pref: *dl, path: {midway2: &gwas "ptb/", gardner: *gwas, desktop: "gwas_data/gwas_sumstats/"}}
   envs:
-    'r':    !Dep {host: *hst, pref:  null, path: { midway2: "../envs/eigenh5.yml", gardner: "../envs/eigenh5.yml", desktop: null }}
-    'ldsc': !Dep {host: *hst, pref:  null, path: { midway2: "../envs/ldsc.yml", gardner: "../envs/ldsc.yml", desktop: "../envs/ldsc.yml" }}
+    'r':    !Dep {host: *hst, pref:  null, path: { midway2: null, gardner: null, desktop: null }}
+    'ldsc': !Dep {host: *hst, pref:  null, path: { midway2: null, gardner: null, desktop: "../envs/ldsc.yml" }}
+    'cmd_prefix': !Dep {host: *hst, pref:  null, path: { midway2: ". /project2/xinhe/software/ldsc/workflow/ldsc_env.sh; ", gardner: ". /gpfs/data/xhe-lab/software/ldsc/workflow/ldsc_env.sh;  ", desktop: "" }}
+
+#+END_SRC
+
+#+BEGIN_SRC yaml :tangle '("../workflow/cluster_config.yaml" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../workflow/cluster_config.yaml" "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../workflow/cluster_config.yaml")
+---
+__default__:
+  partition: 'broadwl'
+  time: '01:00:00'
+  nodes: '1'
+  ntasks: '1'
+  cpuspertask: '1'
+  mem: '25gb'
+run_ldsc:
+  mem: '45gb'
+  time: '02:00:00'
+
+
 #+END_SRC
 
 
 
-#+BEGIN_SRC yaml :tangle ../workflow/base_model.yaml
+#+BEGIN_SRC yaml :tangle '("../workflow/base_model.yaml" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../workflow/base_model.yaml"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../workflow/base_model.yaml" )
 - 'Coding_UCSCL2'
 - 'Coding_UCSC.flanking.500L2'
 - 'Conserved_LindbladTohL2'
@@ -122,7 +140,7 @@ I start off by defining some absolute directories that will be referred to throu
 #+END_SRC
 
 
-#+BEGIN_SRC yaml :tangle ../workflow/annots.yaml
+#+BEGIN_SRC yaml :tangle '("../workflow/annots.yaml" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../workflow/annots.yaml"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../workflow/annots.yaml" )
   ---
   baseline_model: 
     - Coding_UCSCL2
@@ -189,117 +207,176 @@ I start off by defining some absolute directories that will be referred to throu
     - Human_Enhancer_Villar_Species_Enhancer_CountL2
     - Human_Promoter_Villar_ExACL2
   ptb_model:
-    full: [
-    'chip-seq-pooled-DSC1-dec-H3K27ac',
-    'atac-seq-pooled-DSC2-dec-ATAC',
-    'chip-seq-pooled-DSC1-ctr-H3K4me3',
-    'atac-seq-pooled-DSC3-ctr-ATAC',
-    'chip-seq-pooled-DSC3-ctr-H3K4me1',
-    'chip-seq-pooled-DSC1-ctr-H3K4me1',
-    'atac-seq-pooled-DSC1-ctr-ATAC',
-    'chip-seq-reproducible-ctr-H3K4me3',
-    'chip-seq-reproducible-dec-H3K27ac',
-    'chip-seq-reproducible-dec-H3K4me3',
-    'chip-seq-reproducible-dec-H3K4me1',
-    'chip-seq-reproducible-ctr-H3K4me1',
-    'atac-seq-reproducible-dec-ATAC',
-    'chip-seq-reproducible-ctr-H3K27ac',
-    'atac-seq-reproducible-ctr-ATAC',
-    'chip-seq-dec_up-H3K4me1',
-    'chip-seq-pooled-DSC3-dec-H3K4me3',
-    'atac-seq-pooled-DSC2-ctr-ATAC',
-    'chip-seq-dec_up-H3K4me3',
-    'chip-seq-pooled-DSC3-ctr-H3K4me3',
-    'atac-seq-dec_down-ATAC',
-    'atac-seq-pooled-DSC3-dec-ATAC',
-    'chip-seq-dec_up-H3K27ac',
-    'chip-seq-dec_down-H3K4me3',
-    'chip-seq-pooled-DSC2-ctr-H3K4me1',
-    'chip-seq-pooled-DSC1-dec-H3K4me1',
-    'chip-seq-pooled-DSC2-ctr-H3K27ac',
-    'chip-seq-pooled-DSC2-dec-H3K4me1',
-    'chip-seq-pooled-DSC1-dec-H3K4me3',
-    'atac-seq-dec_up-ATAC',
-    'chip-seq-pooled-DSC2-dec-H3K27ac',
-    'chip-seq-pooled-DSC3-dec-H3K27ac',
-    'chip-seq-dec_down-H3K27ac',
-    'chip-seq-pooled-DSC3-ctr-H3K27ac',
-    'chip-seq-dec_down-H3K4me1',
-    'chip-seq-pooled-DSC3-dec-H3K4me1',
-    'chip-seq-pooled-DSC2-dec-H3K4me3',
-    'chip-seq-pooled-DSC2-ctr-H3K4me3',
-    'atac-seq-pooled-DSC1-dec-ATAC',
-    'chip-seq-pooled-DSC1-ctr-H3K27ac']
-    reproducible: [
-    'chip-seq-reproducible-ctr-H3K4me3',
-    'chip-seq-reproducible-dec-H3K27ac',
-    'chip-seq-reproducible-dec-H3K4me3',
-    'chip-seq-reproducible-dec-H3K4me1',
-    'chip-seq-reproducible-ctr-H3K4me1',
-    'atac-seq-reproducible-dec-ATAC',
-    'chip-seq-reproducible-ctr-H3K27ac',
-    'atac-seq-reproducible-ctr-ATAC'
-    ]
+    nopooled: 
+      - chip-seq-reproducible-ctr-H3K4me3
+      - chip-seq-reproducible-dec-H3K27ac
+      - chip-seq-reproducible-dec-H3K4me3
+      - chip-seq-reproducible-dec-H3K4me1
+      - chip-seq-reproducible-ctr-H3K4me1
+      - atac-seq-reproducible-dec-ATAC
+      - chip-seq-reproducible-ctr-H3K27ac
+      - atac-seq-reproducible-ctr-ATAC
+      - chip-seq-dec_up-H3K4me1
+      - chip-seq-dec_up-H3K4me3
+      - atac-seq-dec_down-ATAC
+      - chip-seq-dec_up-H3K27ac
+      - chip-seq-dec_down-H3K4me3
+      - atac-seq-dec_up-ATAC
+      - chip-seq-dec_down-H3K27ac
+      - chip-seq-dec_down-H3K4me1
+    full: 
+      - chip-seq-pooled-DSC1-dec-H3K27ac
+      - atac-seq-pooled-DSC2-dec-ATAC
+      - chip-seq-pooled-DSC1-ctr-H3K4me3
+      - atac-seq-pooled-DSC3-ctr-ATAC
+      - chip-seq-pooled-DSC3-ctr-H3K4me1
+      - chip-seq-pooled-DSC1-ctr-H3K4me1
+      - atac-seq-pooled-DSC1-ctr-ATAC
+      - chip-seq-pooled-DSC3-dec-H3K4me3
+      - chip-seq-pooled-DSC2-ctr-H3K4me1
+      - chip-seq-pooled-DSC1-dec-H3K4me1
+      - chip-seq-pooled-DSC2-ctr-H3K27ac
+      - chip-seq-pooled-DSC2-dec-H3K4me1
+      - chip-seq-pooled-DSC1-dec-H3K4me3
+      - chip-seq-pooled-DSC2-dec-H3K27ac
+      - chip-seq-pooled-DSC3-dec-H3K27ac
+      - chip-seq-pooled-DSC3-dec-H3K4me1
+      - chip-seq-pooled-DSC2-dec-H3K4me3
+      - chip-seq-pooled-DSC2-ctr-H3K4me3
+      - atac-seq-pooled-DSC1-dec-ATAC
+      - chip-seq-pooled-DSC1-ctr-H3K27ac
+      - atac-seq-pooled-DSC2-ctr-ATAC
+      - atac-seq-pooled-DSC3-dec-ATAC
+      - chip-seq-pooled-DSC3-ctr-H3K27ac
+      - chip-seq-reproducible-ctr-H3K4me3
+      - chip-seq-reproducible-dec-H3K27ac
+      - chip-seq-reproducible-dec-H3K4me3
+      - chip-seq-reproducible-dec-H3K4me1
+      - chip-seq-reproducible-ctr-H3K4me1
+      - atac-seq-reproducible-dec-ATAC
+      - chip-seq-reproducible-ctr-H3K27ac
+      - atac-seq-reproducible-ctr-ATAC
+      - chip-seq-dec_up-H3K4me1
+      - chip-seq-dec_up-H3K4me3
+      - chip-seq-pooled-DSC3-ctr-H3K4me3
+      - atac-seq-dec_down-ATAC
+      - chip-seq-dec_up-H3K27ac
+      - chip-seq-dec_down-H3K4me3
+      - atac-seq-dec_up-ATAC
+      - chip-seq-dec_down-H3K27ac
+      - chip-seq-dec_down-H3K4me1
+    reproducible:
+      - chip-seq-reproducible-ctr-H3K4me3
+      - chip-seq-reproducible-dec-H3K4me3
+      - chip-seq-reproducible-dec-H3K27ac
+      - chip-seq-reproducible-ctr-H3K27ac
+      - chip-seq-reproducible-dec-H3K4me1
+      - chip-seq-reproducible-ctr-H3K4me1
+      - atac-seq-reproducible-dec-ATAC
+      - atac-seq-reproducible-ctr-ATAC
+    reproducible_up_down:
+      - chip-seq-reproducible-ctr-H3K4me3
+      - chip-seq-reproducible-dec-H3K4me3
+      - chip-seq-reproducible-dec-H3K27ac
+      - chip-seq-reproducible-ctr-H3K27ac
+      - chip-seq-reproducible-dec-H3K4me1
+      - chip-seq-reproducible-ctr-H3K4me1
+      - atac-seq-reproducible-dec-ATAC
+      - atac-seq-reproducible-ctr-ATAC
+      - chip-seq-dec_up-H3K4me1
+      - chip-seq-dec_up-H3K4me3
+      - atac-seq-dec_down-ATAC
+      - chip-seq-dec_up-H3K27ac
+      - chip-seq-dec_down-H3K4me3
+      - atac-seq-dec_up-ATAC
+      - chip-seq-dec_down-H3K27ac
+      - chip-seq-dec_down-H3K4me1
+      - hicd-seq-bait-dec-HIC
+      - hicd-seq-target-dec-HIC
+    reproducible_merged:
+      - chip-seq-reproducible-ctr-H3K4me3
+      - chip-seq-reproducible-dec-H3K4me3
+      - chip-seq-reproducible-dec-H3K27ac
+      - chip-seq-reproducible-ctr-H3K27ac
+      - chip-seq-reproducible-dec-H3K4me1
+      - chip-seq-reproducible-ctr-H3K4me1
+      - atac-seq-reproducible-dec-ATAC
+      - atac-seq-reproducible-ctr-ATAC
+      - atac-seq-dec_diff-ATAC
+      - chip-seq-dec_diff-H3K4me3
+      - chip-seq-dec_diff-H3K27ac
+      - chip-seq-dec_diff-H3K4me1
+      - hicd-seq-both-dec-HIC
+
+    
+
+
 
 #+END_SRC
 
-#+BEGIN_SRC snakemake :tangle ../workflow/snakefile
+#+BEGIN_SRC snakemake :tangle '("../workflow/snakefile" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../workflow/snakefile"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../workflow/snakefile" )
 
 
-  import os
-  import yaml
-  from yaml import Loader
-  from typing import Any,IO
-
-
-  def host_loader(loader: yaml.loader.Loader,node: yaml.Node) -> Any:
-        fields = loader.construct_mapping(node,deep=True)
-        options=fields['options']
-        # print([options[name] for name in options.keys()])
-        ret_opt = [name for name in options.keys() if os.path.exists(options[name])]
-        # print(ret_opt)
-        return ret_opt[0]
-
-
-  def dep_loader(loader: yaml.loader.Loader,node: yaml.Node) -> Any:
-        options = loader.construct_mapping(node,deep=True)
-        host = options['host']
-        pref = options['pref']
-        # print(pref)
-        host =options['host']
-        path = options['path']
-        full_path = pref+path[host] if pref is not None else path[host]
-        return full_path
+    import os
+    import yaml
+    from yaml import Loader
+    from typing import Any,IO
 
 
 
-  yaml.Loader.add_constructor('!Host', host_loader)
-  yaml.Loader.add_constructor('!Dep', dep_loader)
+    def host_loader(loader: yaml.loader.Loader,node: yaml.Node) -> Any:
+          fields = loader.construct_mapping(node,deep=True)
+          options=fields['options']
+          # print([options[name] for name in options.keys()])
+          ret_opt = [name for name in options.keys() if os.path.exists(options[name])]
+          # print(ret_opt)
+          return ret_opt[0]
+
+
+    def dep_loader(loader: yaml.loader.Loader,node: yaml.Node) -> Any:
+          options = loader.construct_mapping(node,deep=True)
+          host = options['host']
+          pref = options['pref']
+          # print(pref)
+          host =options['host']
+          path = options['path']
+          full_path = pref+path[host] if pref is not None else path[host]
+          return full_path
 
 
 
-  with open("../workflow/config_base.yaml") as stream:
-        config=yaml.load(stream)
-
-  config_d = config['paths']
-  config_e = config['envs']
+    yaml.Loader.add_constructor('!Host', host_loader)
+    yaml.Loader.add_constructor('!Dep', dep_loader)
 
 
-  with open("annots.yaml", 'r') as stream:
-      all_annot = yaml.safe_load(stream)
-      #(all_annot)
-  wildcard_constraints:
-      chrom="\d+"
 
-  localrules: all, get_hm3_snplist,get_plinkfiles,get_frq,get_weights
+    with open("../workflow/config_base.yaml") as stream:
+          config=yaml.load(stream,Loader=Loader)
+
+    config_d = config['paths']
+    config_e = config['envs']
+    shell.prefix(config_e["cmd_prefix"])
+    # if config['flag_file']=="gardner":
+    #       shell.prefix("source ~/.bashrc; ")
+    # if config['flag_file']=="midway2":
+    #       shell.prefix(". /scratch/midway2/nwknoblauch/spack/share/spack/setup-env.sh; ")
 
 
-  include: "dl_snakefile"
-  include: "gwas_snakefile"
-  rule all:
-      input:
-          config_d['GWAS'] +"ldsc_input/ptb_gwas.sumstats.gz",
-          "reproducible.results"
+    with open("annots.yaml", 'r') as stream:
+        all_annot = yaml.safe_load(stream)
+        #(all_annot)
+    wildcard_constraints:
+        chrom="\d+",
+        gwas="[fgdptb]+"
+
+    localrules: all, get_hm3_snplist,get_plinkfiles,get_frq,get_weights
+
+
+    include: "dl_snakefile"
+    include: "gwas_snakefile"
+    rule all:
+        input:
+             expand("{gwas}/{at}.results",gwas=["ptb","fgd"],at=["reproducible_up_down","reproducible_merged"])
 
 
 
@@ -309,16 +386,39 @@ I start off by defining some absolute directories that will be referred to throu
 
 The first step is to download some LD score regression stuff from the web. In particular we want a gzipped tarball of the hapmap 3 SNPs.
 
-#+BEGIN_SRC snakemake :tangle ../workflow/dl_snakefile
+#+BEGIN_SRC snakemake :tangle '("../workflow/dl_snakefile" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../workflow/dl_snakefile"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../workflow/dl_snakefile" )
 
+
+
+  # rule get_hic:
+  #     output:
+
+  #     shell:
+  #         "curl --digest --user {params.username}:{params.password} https://mnlab.uchicago.edu/mod/download/hi-c/DT1_dTL4_D_48h.ibed.bz2 --output {output}
 
 
   rule get_gest_dur_gwas:
       output:
-          temp(config_d['GWAS']+"Fetal_gest_duration_NComms2019.txt.gz")
+          temp(config_d['GWAS']+"fetal_gest_duration/Fetal_gest_duration_NComms2019.txt.gz")
       shell:
-          "wget http://mccarthy.well.ox.ac.uk/publications/2019/EggGestationalDuration_NatureCommunications/Fetal_gest_duration_NComms2019.txt.gz"
+          "wget http://mccarthy.well.ox.ac.uk/publications/2019/EggGestationalDuration_NatureCommunications/Fetal_gest_duration_NComms2019.txt.gz -O {output}"
 
+  rule mv_fgd:
+      input:
+          config_d['GWAS']+"fetal_gest_duration/Fetal_gest_duration_NComms2019.txt.gz"
+      output:
+          temp(config_d['GWAS']+"input/fgd.txt")
+      shell:
+          "zcat {input} > {output}"
+
+
+  rule mv_ptb:
+      input:
+          config_d['GWAS']+"meta.stat"
+      output:
+          temp(config_d['GWAS']+"input/ptb.txt")
+      shell:
+          "cp {input} {output}"        
 
   rule get_hm3_snplist:
       output:
@@ -329,27 +429,35 @@ The first step is to download some LD score regression stuff from the web. In pa
 
 Next we'll unzip the files and put them somewhere on disk.
 
-#+BEGIN_SRC snakemake :tangle ../workflow/dl_snakefile
+#+BEGIN_SRC snakemake :tangle '("../workflow/dl_snakefile" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../workflow/dl_snakefile"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../workflow/dl_snakefile" )
 
-rule gunzip_hm3:
-    input:
-        rules.get_hm3_snplist.output
-    params:
-        dld=config_d['1KG']
-    output:
-        expand(config_d['1KG']+"hapmap3_snps/"+"hm.{chrom}.snp",chrom=range(1,23))
-    shell:
-        "tar -C {params.dld} -xvzf {input}"
+  rule gunzip_hm3:
+      input:
+          rules.get_hm3_snplist.output
+      params:
+          dld=config_d['1KG']
+      output:
+          expand(config_d['1KG']+"hapmap3_snps/"+"hm.{chrom}.snp",chrom=range(1,23))
+      shell:
+          "tar -C {params.dld} -xvzf {input}"
 
 
 #+END_SRC
 
+** Preprocessing
+
+*** rsid matching 
+
 The rsids don't come with coordinates, and we don't have coordinates for our GWAS data, so we'll use the ~SNPlocs.Hsapiens.dbSNP144.GRCh37~ package 
 to get the coordinates corresponding to these rsids.  Also note that we won't be able to get all of them, as some rsids have been merged by NCBI.
 
-#+BEGIN_SRC R :tangle ../scripts/rsid2loc.R
+#+BEGIN_SRC R :tangle '("../scripts/rsid2loc.R" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../scripts/rsid2loc.R"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../scripts/rsid2loc.R" )
 
-  library(tidyverse)
+  library(dplyr)
+library(purrr)
+library(readr)
+
+
   library(ldmap)
 
 
@@ -370,32 +478,143 @@ to get the coordinates corresponding to these rsids.  Also note that we won't be
 
 #+RESULTS:
 
-#+BEGIN_SRC snakemake :tangle ../workflow/dl_snakefile
+*** Annotation Merging
 
-  # rule snp2coord:
-  #     input:
-  #         inputf=config_d['1KG']+"hapmap3_snps/"+"hm.{chrom}.snp"
-  #     output:
-  #         outputf=config_d['1KG']+"hapmap3_snps/"+"hm.{chrom}.tsv.gz"
-  #     script:
-  #         "../scripts/rsid2loc.R"
-    
+**** down+up->diff
+We're going to merge the ~dec_down~ and ~dec_up~ annotations to create a ~dec_diff~ annotation
+
+#+BEGIN_SRC R :tangle '("../scripts/merge_diff.R" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../scripts/merge_diff.R"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../scripts/merge_diff.R" )
+  library(dplyr)
+library(purrr)
+library(readr)
+
+
+  library(ldmap)
+  library(EigenH5)
+
+  input_down <- snakemake@input[["input_down"]]
+  input_up <- snakemake@input[["input_up"]]
+
+  outputf <- snakemake@output[["bedf"]]
+
+  dcols <- cols(
+    chrom = col_factor(paste0("chr", c(as.character(1:22), "X"))),
+    start = col_integer(),
+    end = col_integer())
+
+  diff_df <- vroom::vroom(c(input_up, input_down),
+                          delim = "\t",
+                          col_names = c("chrom", "start", "end"),
+                          col_types = dcols)
+  new_ldmap_range(diff_df$chrom,
+                  diff_df$start,
+                  diff_df$end) %>%
+    split_ldmap_range_overlap() %>%
+    ldmap_range_2_data_frame() %>%
+    vroom::vroom_write(outputf, delim = "\t", col_names = FALSE)
 #+END_SRC
+
+
+
+
+#+BEGIN_SRC snakemake :tangle '("../workflow/dl_snakefile" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../workflow/dl_snakefile"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../workflow/dl_snakefile" )
+
+  rule merge_down_up:
+      input:
+          input_down=config_d['BED']+"{chip_atac}-seq-dec_down-{mark}.bed",
+          input_up=config_d['BED']+"{chip_atac}-seq-dec_up-{mark}.bed"
+      output:
+          bedf=config_d['BED']+"{chip_atac}-seq-dec_diff-{mark}.bed"
+      conda:
+          config_e['r']
+      script:
+          "../scripts/merge_diff.R"
+
+#+END_SRC
+
+**** HiC combinations
+I'll create three annotations out of the HiC data.  One will contain baits only, one targets only and one target|bait
+
+#+BEGIN_SRC R :tangle '("../scripts/merge_hic.R" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../scripts/merge_hic.R"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../scripts/merge_hic.R" )
+  library(dplyr)
+  library(forcats)
+library(purrr)
+library(readr)
+
+
+  library(ldmap)
+  library(EigenH5)
+  cold <- cols(
+  bait_chr = col_factor(paste0("chr", c(as.character(1:22), c("X","Y")))),
+  bait_start = col_double(),
+  bait_end = col_double(),
+  bait_name = col_character(),
+  otherEnd_chr = col_factor(paste0("chr", c(as.character(1:22), c("X","Y")))),
+  otherEnd_start = col_double(),
+  otherEnd_end = col_double(),
+  otherEnd_name = col_character(),
+  N_reads = col_double(),
+  score = col_double()
+  )
+  input_hic <- read_tsv(snakemake@input[["inputf"]],col_names=names(cold$cols),col_types=cold,skip=1L) %>%
+    filter(bait_chr!="chrY", otherEnd_chr!="chrY")  %>%
+    mutate(bait_chr = fct_drop(bait_chr), otherEnd_chr = fct_drop(otherEnd_chr))
+
+  baitf <- snakemake@output[["bait"]]
+  targetf <- snakemake@output[["target"]]
+  bothf <- snakemake@output[["both"]]
+
+  bait_ld <- new_ldmap_range(input_hic$bait_chr,
+                             input_hic$bait_start,
+                             input_hic$bait_end)
+
+  target_ld <- new_ldmap_range(input_hic$otherEnd_chr,
+                               input_hic$otherEnd_start,
+                               input_hic$otherEnd_end)
+
+  both_ld <- merge_ldmap_ranges(bait_ld,target_ld)
+
+  ldmap_range_2_data_frame(bait_ld) %>% write_tsv(baitf,col_names = FALSE)
+  ldmap_range_2_data_frame(target_ld) %>% write_tsv(targetf,col_names = FALSE)
+  ldmap_range_2_data_frame(both_ld) %>% write_tsv(bothf,col_names = FALSE)
+
+
+#+END_SRC
+
+#+RESULTS:
+
+
+
+#+BEGIN_SRC snakemake :tangle '("../workflow/dl_snakefile" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../workflow/dl_snakefile"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../workflow/dl_snakefile" )
+
+  rule merge_split_hic:
+      input:
+          inputf=config_d['BED']+"DT1_dTL4_D_48h.ibed.bz2",
+      output:
+          bait=config_d['BED']+"hicd-seq-bait-dec-HIC.bed",
+          target=config_d['BED']+"hicd-seq-target-dec-HIC.bed",
+          both=config_d['BED']+"hicd-seq-both-dec-HIC.bed"
+      conda:
+          config_e['r']
+      script:
+          "../scripts/merge_hic.R"
+
+#+END_SRC
+
+
+
+
 
 ** Munging the GWAS data
 
 Unfortunately I don't have a remote source for the gwas summary statistics I can point you to, so we'll just pretend like you know
 how to get to `meta.stat` the PTB gwas file.  First thing is to convert it to HDF5 for easier read/write of subsets
 
-
-#+BEGIN_SRC R :tangle ../scripts/gwas2h5.R
-
-  library(tidyverse)
-  library(EigenH5)
-  library(readr)
-  library(ldmap)
+*** Munging strategy
+We're going to create a ~cols~ object for each file. We'll ignore column names in every instance and use our own. if there are no column headers, we'll make a ~params~ argument
 
 
+#+BEGIN_SRC R :tangle '("../scripts/ptbcols.R" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../scripts/ptbcols.R"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../scripts/ptbcols.R" )
   mc <- cols(
       rsid = col_character(),
       chrom = col_integer(),
@@ -420,10 +639,75 @@ how to get to `meta.stat` the PTB gwas file.  First thing is to convert it to HD
       se.23andMe = col_double(),
       pval.23andMe = col_double()
   )
+data_delim <- "\t"
+
+#+END_SRC
+
+#+BEGIN_SRC R :tangle '( "../scripts/fgdcols.R" "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../scripts/fgdcols.R" )
+
+mc <- cols(
+  chrom = col_integer(), # Chr
+  pos = col_double(), #Pos
+  rsid = col_character(), #Rsid
+  A1 = col_character(), #Effect_allele
+  A2 = col_character(), #Non_effect_allele
+  beta = col_double(), #Effect
+  se = col_double(), #StdErr
+  pval = col_double(), #P
+  HetPVal = col_double(),
+  N = col_double(),
+  SNP = col_character()
+)
+data_delim <- " "
+
+#+END_SRC
+
+
+
+
+#+BEGIN_SRC R :tangle '("../scripts/gwas2h5.R" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../scripts/gwas2h5.R"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../scripts/gwas2h5.R" )
+
+  library(dplyr)
+library(purrr)
+library(readr)
+
+
+  library(EigenH5)
+  library(readr)
+  library(ldmap)
+
+
+  ## mc <- cols(
+  ##     rsid = col_character(),
+  ##     chrom = col_integer(),
+  ##     pos = col_double(),
+  ##     A1 = col_character(),
+  ##     A2 = col_character(),
+  ##     N = col_double(),
+  ##     freq = col_double(),
+  ##     beta = col_double(),
+  ##     se = col_double(),
+  ##     pval = col_double(),
+  ##     Q = col_double(),
+  ##     het = col_double(),
+  ##     N.local = col_double(),
+  ##     freq.local = col_double(),
+  ##     beta.local = col_double(),
+  ##     se.local = col_double(),
+  ##     pval.local = col_double(),
+  ##     N.23andMe = col_double(),
+  ##     freq.23andMe = col_double(),
+  ##     beta.23andMe = col_double(),
+  ##     se.23andMe = col_double(),
+  ##     pval.23andMe = col_double()
+  ## )
 
 
   input_f <- snakemake@input[["inputf"]]
   output_f <- snakemake@output[["outputf"]]
+  paramf <- snakemake@input[["paramf"]]
+  stopifnot(!is.null(paramf))
+  source(paramf)
 
 
   callback_fun <- function(df, filename, datapath, ...){
@@ -448,7 +732,7 @@ how to get to `meta.stat` the PTB gwas file.  First thing is to convert it to HD
   delim2h5(input_f,
            output_file = output_f,
            h5_args = list(datapath = "snp"),
-           delim = "\t",
+           delim = data_delim,
            col_names = names(mc$cols),
            skip = 1L,
            callback_fun = callback_fun,
@@ -465,17 +749,20 @@ how to get to `meta.stat` the PTB gwas file.  First thing is to convert it to HD
 
 
 
-#+BEGIN_SRC snakemake :tangle ../workflow/gwas_snakefile
+#+BEGIN_SRC snakemake :tangle '("../workflow/gwas_snakefile" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../workflow/gwas_snakefile"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../workflow/gwas_snakefile" )
 
   rule ptb_gwas2h5:
       input:
-          inputf=config_d['GWAS']+"meta.stat"
+          inputf=config_d['GWAS']+"input/{gwas}.txt",
+          paramf="../scripts/{gwas}cols.R"
       output:
-          outputf=config_d['GWAS'] +"ptb_gwas.h5"
+          outputf=protected(config_d['GWAS'] +"{gwas}_gwas.h5")
       conda:
           config_e['r']
       script:
           "../scripts/gwas2h5.R"
+
+
 
 #+END_SRC
 
@@ -484,9 +771,13 @@ how to get to `meta.stat` the PTB gwas file.  First thing is to convert it to HD
 Next is to write some code to pull out the indices with the matching rsids (using coordinates, not rsid)
 
 
-#+BEGIN_SRC R :tangle ../scripts/index_gwas.R
+#+BEGIN_SRC R :tangle '("../scripts/index_gwas.R" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../scripts/index_gwas.R"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../scripts/index_gwas.R" )
 
-  library(tidyverse)
+  library(dplyr)
+library(purrr)
+library(readr)
+
+
   library(EigenH5)
   library(readr)
   library(ldmap)
@@ -569,7 +860,7 @@ Next is to write some code to pull out the indices with the matching rsids (usin
       vroom::vroom_write(output_f,delim = "\t")
 #+END_SRC
 
-#+BEGIN_SRC R :tangle ../scripts/gen_ldsc_sumstats.R
+#+BEGIN_SRC R :tangle '("../scripts/gen_ldsc_sumstats.R" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../scripts/gen_ldsc_sumstats.R"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../scripts/gen_ldsc_sumstats.R" )
 library(vroom)
 library(magrittr)
 
@@ -582,16 +873,17 @@ library(magrittr)
 #+END_SRC
 
 
-#+BEGIN_SRC snakemake :tangle ../workflow/gwas_snakefile
+#+BEGIN_SRC snakemake :tangle '("../workflow/gwas_snakefile" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../workflow/gwas_snakefile"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../workflow/gwas_snakefile" )
+
 
   rule indexgwas2h5:
       input:
-          inputf=config_d['GWAS'] +"ptb_gwas.h5",
+          inputf=config_d['GWAS'] +"{gwas}_gwas.h5",
           indexf=config_d['L2'] +"baseline/baselineLD.{chrom}.l2.ldscore.gz"
       params:
           chrom="{chrom}"
       output:
-          outputf=temp(config_d['GWAS'] +"hm3_index/ptb_gwas_hm_chr{chrom}.tsv")
+          outputf=temp(config_d['GWAS'] +"hm3_index/{gwas}_gwas_hm_chr{chrom}.tsv")
       conda:
           config_e['r']
       script:
@@ -599,11 +891,11 @@ library(magrittr)
 
   rule prep_ldsc_sumstsat:
       input:
-          inputf=expand(config_d['GWAS'] +"hm3_index/ptb_gwas_hm_chr{chrom}.tsv",chrom=range(1,23))
+          inputf=expand(config_d['GWAS'] +"hm3_index/{{gwas}}_gwas_hm_chr{chrom}.tsv",chrom=range(1,23))
       params:
           gwas_t=""
       output:
-          outputf=temp(config_d['GWAS'] +"ldsc_input/pre_ptb_gwas.sumstats.gz")
+          outputf=temp(config_d['GWAS'] +"ldsc_input_pre/{gwas}_gwas.sumstats.gz")
       conda:
           config_e['r']
       script:
@@ -612,17 +904,17 @@ library(magrittr)
 
   rule check_ldsc_sumstat:
       input:
-          config_d['GWAS'] +"ldsc_input/pre_ptb_gwas.sumstats.gz"
+          config_d['GWAS'] +"ldsc_input_pre/{gwas}_gwas.sumstats.gz"
+      output:
+          outputf=config_d['GWAS'] +"ldsc_input/{gwas}_gwas.sumstats.gz"
       params:
-          outputf=config_d['GWAS'] +"ldsc_input/ptb_gwas"
+          outputf=config_d['GWAS'] +"ldsc_input/{gwas}_gwas"
       conda:
           config_e['ldsc']
-      output:
-          outputf=config_d['GWAS'] +"ldsc_input/ptb_gwas.sumstats.gz",
       log:
-          logf=config_d['GWAS'] +"ldsc_input/ptb_gwas.log"
+          logf=config_d['GWAS'] +"ldsc_input/{gwas}_gwas.log"
       shell:
-          "python2 ../munge_sumstats.py --sumstats {input} --out {params.outputf}"
+          "munge_sumstats.py --sumstats {input} --out {params.outputf}"
 #+END_SRC
 
 #+BEGIN_SRC bash :session rcc2 :dir /ssh:rcc2:/project2/xinhe/software/ldsc/workflow/
@@ -635,7 +927,7 @@ snakemake -n
 
 ** Running LDSC
 
-#+BEGIN_SRC snakemake :tangle ../workflow/dl_snakefile
+#+BEGIN_SRC snakemake :tangle '("../workflow/dl_snakefile" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../workflow/dl_snakefile"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../workflow/dl_snakefile" )
 
   rule get_cadd:
       output:
@@ -722,13 +1014,13 @@ snakemake -n
 
   rule unzip_annot:
       input:
-          config_d['BED'] + "{annot}.bed.gz"
+          config_d['BED'] + "{annot}.bed.bz2"
       output:
           temp(config_d['BED'] + "{annot}.bed")
       wildcard_constraints:
           annot="[^/]+"
       shell:
-          "gzip -cd {input} > {output}"
+          "bzip2 -cd {input} > {output}"
 
 
   rule make_annot:
@@ -742,7 +1034,7 @@ snakemake -n
       conda:
           config_e['ldsc']
       shell:
-          "python2 ../make_annot.py --bed-file {input.anno_bed} --bimfile {input.bim} --annot-file {output.annot} --annot-name {params.anno_name}"
+          "make_annot.py --bed-file {input.anno_bed} --bimfile {input.bim} --annot-file {output.annot} --annot-name {params.anno_name}"
 
   rule pull_rsid:
       input:
@@ -767,54 +1059,32 @@ snakemake -n
           l2gz=config_d['L2']+"{annot}.{chrom}.l2.ldscore.gz"
       params:
           plink=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}",
-          odir=config_d['L2']+"{annot}.{chrom}"
+          odir=config_d['L2']+"{annot}.{chrom}",
+          anno="{annot}"
       # wildcard_constraints:
       #     annot="[^/]"
       conda:
           config_e['ldsc']
       shell:
-          "python2 ../ldsc.py --l2 --bfile {params.plink} --print-snps {input.snplistf} --ld-wind-cm 1 --thin-annot --annot {input.anno_bed} --out {params.odir} "
+          "ldsc.py --l2 --bfile {params.plink} --print-snps {input.snplistf} --ld-wind-cm 1 --thin-annot --annot {input.anno_bed} --out {params.odir} && cp {output.l2gz} {output.l2gz}~ && zcat {output.l2gz}~ | sed '1s/L2/{params.anno}/' | gzip  > {output.l2gz} && rm {output.l2gz}~"
 
-  # rule cmp_ldscores_baseline:
-  #     input:
-  #         anno_bed=config_d['L2'] +"baseline/baselineLD.{chrom}.annot.gz",
-  #         bim=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.bim",
-  #         bed=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.bed",
-  #         fam=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.fam"
-  #     output:
-  #         l2=config_d['L2']+"baselineLD/{annot}.{chrom}.l2.M",
-  #         l2M_50=config_d['L2']+"baselineLD/{annot}.{chrom}.l2.M_5_50",
-  #         l2gz=config_d['L2']+"baselineLD/{annot}.{chrom}.l2.ldscore.gz"
-  #     params:
-  #         plink=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}",
-  #         odir=config_d['L2']+"baselineLD/{annot}.{chrom}"
-  #     conda:
-  #         config_e['ldsc']
-  #     shell:
-  #         "python2 ../ldsc.py --l2 --bfile {params.plink} --ld-wind-cm 1 --annot {input.anno_bed}  --out {params.odir} "
 
-  # def ldsc_fun(wildcards):
-  #     {tchrom: expand(config_d['L2'] +"{anno_name}.{chrom}.l2.ldscore.gz",chrom=[tchrom],anno_name=['baseline' *all_annot[wildcards.anno_name]]) for tchrom in range(1,23)}
-
-  # rule check_ldsc:
-  #     input:
-  #         unpack(ldsc_fun)
-  #     output:
-  #         temp("{anno_name}.check")
-  #     script:
-  #         "../scripts/check_ldscfiles.R"
 #+END_SRC
 
-#+BEGIN_SRC R :tangle ../scripts/check_ldscfiles.R
+#+BEGIN_SRC R :tangle '("../scripts/check_ldscfiles.R" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../scripts/check_ldscfiles.R"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../scripts/check_ldscfiles.R" )
 
   library(vroom)
-  library(tidyverse)
+  library(dplyr)
+library(purrr)
+library(readr)
+
+
   library(fs)
 
-  save.image("wsl.RDS")
-  stop()
-  setwd("~/Dropbox/Repos/ldsc/workflow")
-  load("wsl.RDS")
+  ## save.image("wsl.RDS")
+  ## stop()
+  ## setwd("~/Dropbox/Repos/ldsc/workflow")
+  ## load("wsl.RDS")
 
   ## yam
   ## l_file <- yaml::yaml.load_file("../workflow/annots.yaml")
@@ -828,7 +1098,7 @@ snakemake -n
 
 #+END_SRC
 
-#+BEGIN_SRC R :tangle ../scripts/check_ldscfiles.R
+#+BEGIN_SRC R :tangle '("../scripts/check_ldscfiles.R" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../scripts/check_ldscfiles.R"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../scripts/check_ldscfiles.R" )
    file_df <- tibble::as_tibble(expand.grid(feature = feat_list, chrom = 1:22,stringsAsFactors = FALSE)) %>%
     dplyr::mutate(
              path = fs::path(l2dir,
@@ -848,7 +1118,7 @@ snakemake -n
   stopifnot(all(fs::file_exists(c(file_df$path,file_df$baseline_path,file_df$annot_path,file_df$baseline_annot_path))))
 #+END_SRC
 
-#+BEGIN_SRC R :tangle ../scripts/check_ldscfiles.R
+#+BEGIN_SRC R :tangle '("../scripts/check_ldscfiles.R" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../scripts/check_ldscfiles.R"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../scripts/check_ldscfiles.R" )
   spec <- cols(
     CHR = col_skip(),
     SNP = col_skip(),
@@ -1065,7 +1335,7 @@ snakemake -n
   )
 #+END_SRC
 
-#+BEGIN_SRC R :tangle ../scripts/check_ldscfiles.R
+#+BEGIN_SRC R :tangle '("../scripts/check_ldscfiles.R" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../scripts/check_ldscfiles.R"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../scripts/check_ldscfiles.R" )
 
   file_df <- nest(file_df,feat_data = c(feature,path,annot_path))
   modify_cols <- function(cols,old,new) {
@@ -1122,56 +1392,86 @@ om(baseline_path,delim = "\t",col_types = new_base),lddf)
 
 
 
-#+BEGIN_SRC snakemake :tangle ../workflow/dl_snakefile
+#+BEGIN_SRC snakemake :tangle '("../workflow/dl_snakefile" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../workflow/dl_snakefile"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../workflow/dl_snakefile" )
 
 
-  def new_get_annot_files(wildcards):
-      return {'anno_l2':expand(config_d['L2'] +"{annot}.{chrom}.l2.ldscore.gz",chrom=range(1,23),annot=all_annot['ptb_model'][wildcards.anno_name]),
+
+
+    def get_annot_files(wildcards):
+        return {'anno_l2':expand(config_d['L2'] +"{anno_name}.{chrom}.l2.ldscore.gz",chrom=range(1,23),anno_name=all_annot['ptb_model'][wildcards.anno_name]),
               'baseline_l2':expand(config_d['L2'] +"baseline/baselineLD.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
-              'gwasf':config_d['GWAS'] +"ldsc_input/ptb_gwas.sumstats.gz",
+              'gwasf':config_d['GWAS'] +f"ldsc_input/{wildcards.gwas}_gwas.sumstats.gz",
               'baselinef':  expand(config_d['WEIGHTS'] +"weights.hm3_noMHC.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
               'freqf':  expand(config_d['FRQF'] +"1000G.EUR.QC.{chrom}.frq",chrom=range(1,23)),
       }
 
 
+  def get_annot_pairs(wildcards):
+      return {'anno_l2':expand(config_d['L2'] +"{anno_name}.{chrom}.l2.ldscore.gz",chrom=range(1,23),anno_name=all_annot['ptb_model'][wildcards.anno_name]),
+              'baseline_l2':expand(config_d['L2'] +"baseline/baselineLD.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
+              'gwasfA':config_d['GWAS'] +f"ldsc_input/{wildcards.gwasA}_gwas.sumstats.gz",
+              'gwasfB':config_d['GWAS'] +f"ldsc_input/{wildcards.gwasB}_gwas.sumstats.gz",
+              'baselinef':  expand(config_d['WEIGHTS'] +"weights.hm3_noMHC.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
+              'freqf':  expand(config_d['FRQF'] +"1000G.EUR.QC.{chrom}.frq",chrom=range(1,23)),
+      }
 
-  def get_merge_annot_files(wildcards):
-      return {'anno_l2':expand(config_d['L2'] +"{annot}.{chrom}.l2.ldscore.gz",chrom=range(1,23),annot=all_annot['ptb_model'][wildcards.anno_name]),
-              'annof':expand(config_d['L2'] +"{annot}.{chrom}.annot.gz",chrom=range(1,23),annot=all_annot['ptb_model'][wildcards.anno_name]),
-              'baseline_l2':expand(config_d['L2'] +"baseline/baselineLD.{chrom}.l2.ldscore.gz",chrom=range(1,23))
-        }
-
-  rule merge_ldsc:
-      input:
-          unpack(get_merge_annot_files)   
-      output:
-          dataf=expand(config_d["L2"]+"new_baseline/{{anno_name}}.{chrom}.l2.ldscore.gz",chrom=range(1,23))
-      params:
-          L2=config_d['L2'],
-          baseline_features=all_annot['baseline_model'],
-          features=lambda wildcards: all_annot['ptb_model'][wildcards.anno_name],
-          annot_name="{anno_name}"
-      script:
-          "../scripts/check_ldscfiles.R"
 
   rule run_ldsc:
       input:
-          anno_ld=expand(config_d["L2"]+"new_baseline/{{anno_name}}.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
-          baselinef=  expand(config_d['WEIGHTS'] +"weights.hm3_noMHC.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
-          gwasf=config_d['GWAS'] +"ldsc_input/ptb_gwas.sumstats.gz"
+          unpack(get_annot_files)
       output:
-          dataf="{anno_name}.results"
+          dataf="{gwas}/{anno_name}.results"
       log:
-          tempf=temp("{anno_name}.log")
+          tempf=temp("{gwas}_{anno_name}.log")
       params:
-          annot=config_d["L2"]+"new_baseline/{anno_name}",
+          annot=lambda wildcards: ','.join(expand(config_d['L2']+"{anno_name}.",anno_name=all_annot['ptb_model'][wildcards.anno_name])),
+          baseline=config_d['L2']+"baseline/baselineLD.",
           weights=config_d['WEIGHTS']+"weights.hm3_noMHC.",
           frq=config_d['FRQF'] +"1000G.EUR.QC.",
-          odir="{anno_name}"
+          odir="{gwas}/{anno_name}"
       conda:
           config_e['ldsc']
       shell:
-          """python2 ../ldsc.py --h2 {input.gwasf} --ref-ld-chr {params.annot} --w-ld-chr {params.weights} --overlap-annot --frqfile-chr {params.frq} --out {params.odir} """
+          "ldsc.py --h2 {input.gwasf} --ref-ld-chr {params.annot},{params.baseline} --w-ld-chr {params.weights} --thin-annot --overlap-annot --frqfile-chr {params.frq} --out {params.odir} "
+
+
+
+
+  rule run_ldsc_cor:
+      input:
+          unpack(get_annot_pairs)
+      output:
+          dataf="{gwasA},{gwasB}/{anno_name}.log"
+      params:
+          annot=lambda wildcards: ','.join(expand(config_d['L2']+"{anno_name}.",anno_name=all_annot['ptb_model'][wildcards.anno_name])),
+          baseline=config_d['L2']+"baseline/baselineLD.",
+          weights=config_d['WEIGHTS']+"weights.hm3_noMHC.",
+          frq=config_d['FRQF'] +"1000G.EUR.QC.",
+          odir="{gwasA},{gwasB}/{anno_name}"
+      conda:
+          config_e['ldsc']
+      shell:
+          "ldsc.py --rg {input.gwasfA},{input.gwasfB} --ref-ld-chr {params.annot},{params.baseline} --w-ld-chr {params.weights} --thin-annot --overlap-annot --frqfile-chr {params.frq} --out {params.odir} "
+
+
+  # rule run_ldsc:
+  #     input:
+  #         anno_ld=expand(config_d["L2"]+"new_baseline/{{anno_name}}.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
+  #         baselinef=  expand(config_d['WEIGHTS'] +"weights.hm3_noMHC.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
+  #         gwasf=config_d['GWAS'] +"ldsc_input/ptb_gwas.sumstats.gz"
+  #     output:
+  #         dataf="{anno_name}.results"
+  #     log:
+  #         tempf=temp("{anno_name}.log")
+  #     params:
+  #         annot=config_d["L2"]+"new_baseline/{anno_name}",
+  #         weights=config_d['WEIGHTS']+"weights.hm3_noMHC.",
+  #         frq=config_d['FRQF'] +"1000G.EUR.QC.",
+  #         odir="{anno_name}"
+  #     conda:
+  #         config_e['ldsc']
+  #     shell:
+  #         """python2 ../ldsc.py --h2 {input.gwasf} --ref-ld-chr {params.annot} --w-ld-chr {params.weights} --overlap-annot --frqfile-chr {params.frq} --out {params.odir} """
 
 
 
@@ -1180,3 +1480,8 @@ om(baseline_path,delim = "\t",col_types = new_base),lddf)
 
 
 #+END_SRC
+
+
+** Running Torus
+
+The input that torus accepts is very similar to stratified LD score regression.  The main difference is torus 

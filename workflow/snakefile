@@ -4,6 +4,7 @@ from yaml import Loader
 from typing import Any,IO
 
 
+
 def host_loader(loader: yaml.loader.Loader,node: yaml.Node) -> Any:
       fields = loader.construct_mapping(node,deep=True)
       options=fields['options']
@@ -31,17 +32,23 @@ yaml.Loader.add_constructor('!Dep', dep_loader)
 
 
 with open("../workflow/config_base.yaml") as stream:
-      config=yaml.load(stream)
+      config=yaml.load(stream,Loader=Loader)
 
 config_d = config['paths']
 config_e = config['envs']
+shell.prefix(config_e["cmd_prefix"])
+# if config['flag_file']=="gardner":
+#       shell.prefix("source ~/.bashrc; ")
+# if config['flag_file']=="midway2":
+#       shell.prefix(". /scratch/midway2/nwknoblauch/spack/share/spack/setup-env.sh; ")
 
 
 with open("annots.yaml", 'r') as stream:
     all_annot = yaml.safe_load(stream)
     #(all_annot)
 wildcard_constraints:
-    chrom="\d+"
+    chrom="\d+",
+    gwas="[fgdptb]+"
 
 localrules: all, get_hm3_snplist,get_plinkfiles,get_frq,get_weights
 
@@ -50,5 +57,4 @@ include: "dl_snakefile"
 include: "gwas_snakefile"
 rule all:
     input:
-        config_d['GWAS'] +"ldsc_input/ptb_gwas.sumstats.gz",
-        "reproducible.results"
+         expand("{gwas}/{at}.results",gwas=["ptb","fgd"],at=["reproducible_up_down","reproducible_merged"])

@@ -1,5 +1,5 @@
 ---
-flag_file: &hst !Host {options: {midway2: "/project2", gardner: "/gpfs/data/xhe-lab/", desktop: "/run/media/nwknoblauch/Data"}}
+flag_file: &hst !Host {options: {midway2: "/project2", gardner: "/gpfs/data/xhe-lab/", desktop: "/run/media/nwknoblauch/Data"} }
 paths: 
   'DL': &dl  !Dep {host: *hst, pref:  null, path: { midway2: "/project2/xinhe/", gardner: "/gpfs/data/xhe-lab/", desktop: "/run/media/nwknoblauch/Data/"}}
   '1KG':     !Dep {host: *hst, pref: *dl, path: {midway2: &1kg "1kg/", gardner: *1kg , desktop: *1kg} }
@@ -10,5 +10,6 @@ paths:
   'FRQF':    !Dep {host: *hst, pref: *dl, path: {midway2: &frq "1kg/1000G_Phase3_frq/", gardner: *frq, desktop: "1kg/1000G_Phase3_frq/"}} 
   'GWAS':    !Dep {host: *hst, pref: *dl, path: {midway2: &gwas "ptb/", gardner: *gwas, desktop: "gwas_data/gwas_sumstats/"}}
 envs:
-  'r':    !Dep {host: *hst, pref:  null, path: { midway2: "../envs/eigenh5.yml", gardner: "../envs/eigenh5.yml", desktop: null }}
-  'ldsc': !Dep {host: *hst, pref:  null, path: { midway2: "../envs/ldsc.yml", gardner: "../envs/ldsc.yml", desktop: "../envs/ldsc.yml" }}
+  'r':    !Dep {host: *hst, pref:  null, path: { midway2: null, gardner: null, desktop: null }}
+  'ldsc': !Dep {host: *hst, pref:  null, path: { midway2: null, gardner: null, desktop: "../envs/ldsc.yml" }}
+  'cmd_prefix': !Dep {host: *hst, pref:  null, path: { midway2: ". /project2/xinhe/software/ldsc/workflow/ldsc_env.sh; ", gardner: ". /gpfs/data/xhe-lab/software/ldsc/workflow/ldsc_env.sh;  ", desktop: "" }}
