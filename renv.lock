@@ -88,6 +88,7 @@
     "EigenH5": {
       "Package": "EigenH5",
       "Version": "2.0",
+      "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteUsername": "CreRecombinase",
