@@ -975,9 +975,14 @@
     "vroom": {
       "Package": "vroom",
       "Version": "1.0.2.9000",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "ffbe3f8c2878e48557ba1c26773b1fa9"
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteUsername": "r-lib",
+      "RemoteRepo": "vroom",
+      "RemoteRef": "master",
+      "RemoteSha": "3cc25cd8b662c229819d3bfca7b2c0f45882008c",
+      "Hash": "d1a390ed377179880a26a0aa29e0e7ea"
     },
     "whisker": {
       "Package": "whisker",
