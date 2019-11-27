@@ -7,4 +7,5 @@ __default__:
   cpuspertask: '1'
   mem: '25gb'
 run_ldsc:
-  mem: '32gb'
+  mem: '45gb'
+  time: '02:00:00'

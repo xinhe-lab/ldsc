@@ -1,135 +1,110 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-rule unzip_annot:
+rule pull_rsid:
     input:
-        config['BED'] + "{annot}.bed.gz"
+        config_d["L2"]+"baseline/baselineLD.{chrom}.l2.ldscore.gz"
     output:
-        temp(config['BED'] + "{annot}.bed")
+        temp(config_d["L2"]+"snplist/{chrom}.snplist.txt")
     shell:
-        '''gzip -cd {input} > {output}'''
+        "zcat {input} | cut -f 2 | tail -n +2 > {output}"
 
 
-rule make_annot:
+
+rule cmp_ldscores:
     input:
-        anno_bed=config['BED'] +"{annot}.bed",
-        bim=config['1KG'] + "1000G_plinkfiles/1000G.mac5eur.{chrom}.bim"
+        anno_bed=config_d['L2'] +"{annot}.{chrom}.annot.gz",
+        snplistf=config_d["L2"]+"snplist/{chrom}.snplist.txt",
+        bim=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.bim",
+        bed=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.bed",
+        fam=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.fam"
     output:
-        annot = config['ANNO'] +"{annot}/{annot}.{chrom}.annot.gz"
+        l2=config_d['L2']+"{annot}.{chrom}.l2.M",
+        l2M_50=config_d['L2']+"{annot}.{chrom}.l2.M_5_50",
+        l2gz=config_d['L2']+"{annot}.{chrom}.l2.ldscore.gz"
     params:
-        anno_name='{annot}'
+        plink=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}",
+        odir=config_d['L2']+"{annot}.{chrom}",
+        anno="{annot}"
+    # wildcard_constraints:
+    #     annot="[^/]"
     conda:
-        "../envs/ldsc.yml"
+        config_e['ldsc']
     shell:
-        '''python2 ../make_annot.py --bed-file {input.anno_bed} --bimfile {input.bim} --annot-file {output.annot}'''
+        "ldsc.py --l2 --bfile {params.plink} --print-snps {input.snplistf} --ld-wind-cm 1 --thin-annot --annot {input.anno_bed} --out {params.odir} && cp {output.l2gz} {output.l2gz}~ && zcat {output.l2gz}~ | sed '1s/L2/{params.anno}/' | gzip  > {output.l2gz} && rm {output.l2gz}~"
 
 
-rule cmp_ldsc:
+
+
+def get_annot_files(wildcards):
+        return {'anno_l2':expand(config_d['L2'] +"{anno_name}.{chrom}.l2.ldscore.gz",chrom=range(1,23),anno_name=all_annot['ptb_ldsc_model'][wildcards.anno_name]),
+                'baseline_l2':expand(config_d['L2'] +"baseline/baselineLD.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
+                'gwasf':config_d['GWAS'] +f"ldsc_input/{wildcards.gwas}_gwas.sumstats.gz",
+                'baselinef':  expand(config_d['WEIGHTS'] +"weights.hm3_noMHC.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
+                'freqf':  expand(config_d['FRQF'] +"1000G.EUR.QC.{chrom}.frq",chrom=range(1,23)),
+        }
+
+
+def get_annot_pairs(wildcards):
+        return {'anno_l2':expand(config_d['L2'] +"{anno_name}.{chrom}.l2.ldscore.gz",chrom=range(1,23),anno_name=all_annot['ptb_ldsc_model'][wildcards.anno_name]),
+                'baseline_l2':expand(config_d['L2'] +"baseline/baselineLD.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
+                'gwasfA':config_d['GWAS'] +f"ldsc_input/{wildcards.gwasA}_gwas.sumstats.gz",
+                'gwasfB':config_d['GWAS'] +f"ldsc_input/{wildcards.gwasB}_gwas.sumstats.gz",
+                'baselinef':  expand(config_d['WEIGHTS'] +"weights.hm3_noMHC.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
+                'freqf':  expand(config_d['FRQF'] +"1000G.EUR.QC.{chrom}.frq",chrom=range(1,23)),
+        }
+
+
+rule run_ldsc:
     input:
-        anno_bed=config['ANNO'] +"{annot}/{annot}.{chrom}.annot.gz",
-        bim=config['1KG'] + "1000G_plinkfiles/1000G.mac5eur.{chrom}.bim",
-        bed=config['1KG'] + "1000G_plinkfiles/1000G.mac5eur.{chrom}.bed",
-        fam=config['1KG'] + "1000G_plinkfiles/1000G.mac5eur.{chrom}.fam"
+        unpack(get_annot_files)
     output:
-        tempf=temp(config['L2']+"{annot}.{chrom}.log"),
-        l2=config['L2']+"{annot}.{chrom}.l2.M",
-        l2M_50=config['L2']+"{annot}.{chrom}.l2.M_5_50",
-        l2gz=config['L2']+"{annot}.{chrom}.l2.ldscore.gz"
+        dataf="{gwas}/{anno_name}.results"
+    log:
+        tempf=temp("{gwas}_{anno_name}.log")
     params:
-        plink=config['1KG'] + "1000G_plinkfiles/1000G.mac5eur.{chrom}",
-        odir=config['L2']+"{annot}.{chrom}"
+        annot=lambda wildcards: ','.join(expand(config_d['L2']+"{anno_name}.",anno_name=all_annot['ptb_ldsc_model'][wildcards.anno_name])),
+        baseline=config_d['L2']+"baseline/baselineLD.",
+        weights=config_d['WEIGHTS']+"weights.hm3_noMHC.",
+        frq=config_d['FRQF'] +"1000G.EUR.QC.",
+        odir="{gwas}/{anno_name}"
     conda:
-        "../envs/ldsc.yml"
+        config_e['ldsc']
     shell:
-        """python2 ../ldsc.py --l2 --bfile {params.plink} --ld-wind-cm 1 --annot {input.anno_bed} --thin-annot --out {params.odir} """
+        "ldsc.py --h2 {input.gwasf} --ref-ld-chr {params.annot},{params.baseline} --w-ld-chr {params.weights} --thin-annot --overlap-annot --frqfile-chr {params.frq} --out {params.odir} "
 
 
 
 
+rule run_ldsc_cor:
+    input:
+        unpack(get_annot_pairs)
+    output:
+        dataf="{gwasA},{gwasB}/{anno_name}.log"
+    params:
+        annot=lambda wildcards: ','.join(expand(config_d['L2']+"{anno_name}.",anno_name=all_annot['ptb_ldsc_model'][wildcards.anno_name])),
+        baseline=config_d['L2']+"baseline/baselineLD.",
+        weights=config_d['WEIGHTS']+"weights.hm3_noMHC.",
+        frq=config_d['FRQF'] +"1000G.EUR.QC.",
+        odir="{gwasA},{gwasB}/{anno_name}"
+    conda:
+        config_e['ldsc']
+    shell:
+        "ldsc.py --rg {input.gwasfA},{input.gwasfB} --ref-ld-chr {params.annot},{params.baseline} --w-ld-chr {params.weights} --thin-annot --overlap-annot --frqfile-chr {params.frq} --out {params.odir} "
 
 
-
-
-
-# rule ldsc_trait_chunk:
-#     input:
-#         evdf=expand(config["EVD"]+"{{pop_a}}/{{pop_b}}/chr{chrom}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}.h5",chrom=genome_chr)
-#     output:
-#         outf =expand(config["LDSC_LD"]+"{{pop_a}}_{{pop_b}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_chr{chri}/{chrom}.l2.ldscore.gz",chri=chrom_int,chrom=range(1,23)),
-#         soutf=expand(config["LDSC_LD"]+"{{pop_a}}_{{pop_b}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_chr{chri}/{chrom}.l2.M_5_50",chri=chrom_int,chrom=range(1,23))
-#     script:
-#         "../scripts/ldsc_trait_chunk.R"
-
-        
-# rule prep_ldsc_uh:
-#     input:
-#         rdsf=expand(config["KGECTORY"]+"gwas_uh/chr{chrom}_{{pop_a}}_{{pop_b}}_{{scenario}}_{{ncovar}}_sim.h5",chrom=genome_chr)
-#     params:
-#         fgeneid=FGENEID[SCEN]
-#     output:
-#         ldscf=temp(expand(config["KGECTORY"]+"ldsc_sim_gwas_genome/chr{chri}_{{pop_a}}_{{pop_b}}_sim_{fgeneid}_uh_{{scenario}}_{{ncovar}}.txt",fgeneid=FGENEID[SCEN],chri=chrom_int))
-#     script:
-#         "../scripts/prep_ldsc_uh.R"
-
-        
-# rule ldsc_trait_est_int:
-#     input:
-#         ldsc_f="ldsc/ldsc.py",
-#         sumstatf=config["KGECTORY"]+"ldsc_sim_gwas_genome/chr{chri}_{{pop_a}}_{{pop_b}}_sim_{{fgeneid}}_uh_{{scenario}}_{{ncovar}}.txt".format(chri=chrom_int),
-#         chroml2=expand(config["LDSC_LD"]+"{{pop_a}}_{{pop_b}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_chr{chri}/{chrom}.l2.ldscore.gz",chri=chrom_int,chrom=range(1,23))
-#     params:
-#         out_pref=config["KGECTORY"]+"ldsc_est_gwas_genome/est_chr{chri}_{{pop_a}}_{{pop_b}}_{{scenario}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_sim_{{fgeneid}}_{{ncovar}}_T".format(chri=chrom_int),
-#         ld_dir=config["LDSC_LD"]+"{{pop_a}}_{{pop_b}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_chr{chri}/".format(chri=chrom_int)
-#     output:
-#         logf=temp(config["KGECTORY"]+"ldsc_est_gwas_genome/est_chr{chri}_{{pop_a}}_{{pop_b}}_{{scenario}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_sim_{{fgeneid}}_{{ncovar}}_T.log".format(chri=chrom_int))
-#     conda:
-#         "envs/ldsc.yml"
-#     shell:
-#         "python2 ./ldsc/ldsc.py --h2 {input.sumstatf}  --ref-ld-chr {params.ld_dir} --w-ld-chr {params.ld_dir} --out {params.out_pref} "
-
-
-# rule ldsc_trait_est_noint:
-#     input:
-#         ldsc_f="ldsc/ldsc.py",
-#         sumstatf=config["KGECTORY"]+"ldsc_sim_gwas_genome/chr{chri}_{{pop_a}}_{{pop_b}}_sim_{{fgeneid}}_uh_{{scenario}}_{{ncovar}}.txt".format(chri=chrom_int),
-#         chroml2=expand(config["LDSC_LD"]+"{{pop_a}}_{{pop_b}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_chr{chri}/{chrom}.l2.ldscore.gz",chri=chrom_int,chrom=genome_chr)
-#     params:
-#         out_pref=config["KGECTORY"]+"ldsc_est_gwas_genome/est_chr{chri}_{{pop_a}}_{{pop_b}}_{{scenario}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_sim_{{fgeneid}}_{{ncovar}}_F".format(chri=chrom_int),
-#         ld_dir=config["LDSC_LD"]+"{{pop_a}}_{{pop_b}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_chr{chri}/".format(chri=chrom_int)
-#     output:
-#         logf=temp(config["KGECTORY"]+"ldsc_est_gwas_genome/est_chr{chri}_{{pop_a}}_{{pop_b}}_{{scenario}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_sim_{{fgeneid}}_{{ncovar}}_F.log".format(chri=chrom_int))
-#     conda:
-#         "envs/ldsc.yml"
-
-#     shell:
-#         "python2 ./ldsc/ldsc.py --h2 {input.sumstatf}  --no-intercept --ref-ld-chr {params.ld_dir} --w-ld-chr {params.ld_dir} --out {params.out_pref} "
-
-
-# rule ldsc_trait_parse:
-#     input:
-#         logf=expand(config["KGECTORY"]+"ldsc_est_gwas_genome/est_chr{chri}_{{pop_a}}_{{pop_b}}_{{scenario}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_sim_{fgeneid}_{{ncovar}}_{{useIntercept}}.log",chri=chrom_int,fgeneid=FGENEID[SCEN]),
-#         true_f=config["KGECTORY"]+"gwas_uh/chr{chrom}_{{pop_a}}_{{pop_b}}_{{scenario}}_{{ncovar}}_sim.h5".format(chrom=list(genome_chr)[0])
-#     output:
-#         logf=config["OUTPUT_DIR"]+"ldsc_res/est_chr{chri}_{{pop_a}}_{{pop_b}}_{{scenario}}_{{useLDetect}}_{{geneticMap}}_{{useLDshrink}}_sim_{{ncovar}}_{{useIntercept}}.txt.gz".format(chri=chrom_int)
-#     params:
-#         fgeneid=expand("{fgeneid}",fgeneid=FGENEID[SCEN])
-#     script:
-#         "../scripts/parse_ldsc.R"
-                
-        
-
-# rule get_ldsc:
-#     output:
-#         "ldsc/ldsc.py"
-#     shell:
-#         "git clone https://github.com/bulik/ldsc.git"
+  # rule run_ldsc:
+  #     input:
+  #         anno_ld=expand(config_d["L2"]+"new_baseline/{{anno_name}}.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
+  #         baselinef=  expand(config_d['WEIGHTS'] +"weights.hm3_noMHC.{chrom}.l2.ldscore.gz",chrom=range(1,23)),
+  #         gwasf=config_d['GWAS'] +"ldsc_input/ptb_gwas.sumstats.gz"
+  #     output:
+  #         dataf="{anno_name}.results"
+  #     log:
+  #         tempf=temp("{anno_name}.log")
+  #     params:
+  #         annot=config_d["L2"]+"new_baseline/{anno_name}",
+  #         weights=config_d['WEIGHTS']+"weights.hm3_noMHC.",
+  #         frq=config_d['FRQF'] +"1000G.EUR.QC.",
+  #         odir="{anno_name}"
+  #     conda:
+  #         config_e['ldsc']
+  #     shell:
+  #         """python2 ../ldsc.py --h2 {input.gwasf} --ref-ld-chr {params.annot} --w-ld-chr {params.weights} --overlap-annot --frqfile-chr {params.frq} --out {params.odir} """

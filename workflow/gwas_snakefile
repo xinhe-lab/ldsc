@@ -48,3 +48,46 @@ rule check_ldsc_sumstat:
         logf=config_d['GWAS'] +"ldsc_input/{gwas}_gwas.log"
     shell:
         "munge_sumstats.py --sumstats {input} --out {params.outputf}"
+
+rule gwas_h52torus:
+    input:
+        inputf=config_d['GWAS'] +"{gwas}_gwas.h5",
+        snplist = expand(config_d['1KG'] +"1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.bim",chrom=range(1,23))
+    output:
+        outputf=temp(config_d['GWAS'] +"{gwas}_torus.txt.gz")
+    conda:
+        config_e['r']
+    script:
+        "../scripts/gen_torus_sumstats.R"
+
+def get_annot_torus_files(wildcards):
+        annok = all_annot['ptb_torus_model'].get(wildcards.anno_name)
+        ret_dict = {
+            'annot_f' :expand(config_d['BED'] +"{anno_name}.bed",anno_name=annok),
+            'bimf': expand(config_d['1KG'] +"1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.bim",chrom=range(1,23))
+        }
+        return ret_dict
+
+rule anno2torus:
+    input:
+        unpack(get_annot_torus_files)
+    output:
+        outputf=temp(config_d['ANNO'] +"{anno_name}.txt.gz")
+    params:
+        chroms=range(1,22),
+        annot=lambda wildcards: expand("{anno_name}",anno_name=all_annot['ptb_torus_model'][wildcards.anno_name])
+    conda:
+        config_e['r']
+    script:
+        "../scripts/gen_torus_anno.R"
+
+rule anno2torus_fdr:
+    input:
+        gwasf=config_d['GWAS'] +"{gwas}_torus.txt.gz",
+        annof=config_d['ANNO'] +"{anno_name}.txt.gz"
+    output:
+        outputf="torus_{gwas}_{anno_name}_fdr.RDS"
+    conda:
+        config_e['r']
+    script:
+        "../scripts/run_torus_fdr.R"

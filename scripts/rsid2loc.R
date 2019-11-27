@@ -3,7 +3,7 @@ library(purrr)
 library(readr)
 
 
-  library(ldmap)
+library(ldmap)
 
 
   input_f <- snakemake@input[["input"]]

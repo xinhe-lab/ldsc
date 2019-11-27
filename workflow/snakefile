@@ -43,7 +43,7 @@ shell.prefix(config_e["cmd_prefix"])
 #       shell.prefix(". /scratch/midway2/nwknoblauch/spack/share/spack/setup-env.sh; ")
 
 
-with open("annots.yaml", 'r') as stream:
+with open("../workflow/annots.yaml", 'r') as stream:
     all_annot = yaml.safe_load(stream)
     #(all_annot)
 wildcard_constraints:
@@ -57,4 +57,4 @@ include: "dl_snakefile"
 include: "gwas_snakefile"
 rule all:
     input:
-         expand("{gwas}/{at}.results",gwas=["ptb","fgd"],at=["reproducible_up_down","reproducible_merged"])
+        expand("torus_{gwas}_{full_anno_name}_fdr.RDS",gwas=["ptb","fgd"],full_anno_name=["allhic","targethic","baithic"])

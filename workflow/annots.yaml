@@ -63,7 +63,20 @@ baseline_model:
   - Ancient_Sequence_Age_Human_EnhancerL2
   - Human_Enhancer_Villar_Species_Enhancer_CountL2
   - Human_Promoter_Villar_ExACL2
-ptb_model:
+ptb_torus_model:
+  allhic:
+    - chip-seq-dec_diff-H3K27ac
+    - chip-seq-reproducible-ctr-H3K4me1
+    - hicd-seq-both-dec-HIC
+  targethic:
+    - chip-seq-dec_diff-H3K27ac
+    - chip-seq-reproducible-ctr-H3K4me1
+    - hicd-seq-target-dec-HIC
+  baithic:
+    - chip-seq-dec_diff-H3K27ac
+    - chip-seq-reproducible-ctr-H3K4me1
+    - hicd-seq-bait-dec-HIC
+ptb_ldsc_model:
   nopooled: 
     - chip-seq-reproducible-ctr-H3K4me3
     - chip-seq-reproducible-dec-H3K27ac
