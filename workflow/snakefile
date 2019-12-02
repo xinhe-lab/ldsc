@@ -6,23 +6,23 @@ from typing import Any,IO
 
 
 def host_loader(loader: yaml.loader.Loader,node: yaml.Node) -> Any:
-      fields = loader.construct_mapping(node,deep=True)
-      options=fields['options']
-      # print([options[name] for name in options.keys()])
-      ret_opt = [name for name in options.keys() if os.path.exists(options[name])]
-      # print(ret_opt)
-      return ret_opt[0]
+    fields = loader.construct_mapping(node,deep=True)
+    options=fields['options']
+    # print([options[name] for name in options.keys()])
+    ret_opt = [name for name in options.keys() if os.path.exists(options[name])]
+    # print(ret_opt)
+    return ret_opt[0]
 
 
 def dep_loader(loader: yaml.loader.Loader,node: yaml.Node) -> Any:
-      options = loader.construct_mapping(node,deep=True)
-      host = options['host']
-      pref = options['pref']
-      # print(pref)
-      host =options['host']
-      path = options['path']
-      full_path = pref+path[host] if pref is not None else path[host]
-      return full_path
+    options = loader.construct_mapping(node,deep=True)
+    host = options['host']
+    pref = options['pref']
+    # print(pref)
+    host =options['host']
+    path = options['path']
+    full_path = pref+path[host] if pref is not None else path[host]
+    return full_path
 
 
 
@@ -32,29 +32,34 @@ yaml.Loader.add_constructor('!Dep', dep_loader)
 
 
 with open("../workflow/config_base.yaml") as stream:
-      config=yaml.load(stream,Loader=Loader)
+    config=yaml.load(stream,Loader=Loader)
 
 config_d = config['paths']
 config_e = config['envs']
 shell.prefix(config_e["cmd_prefix"])
-# if config['flag_file']=="gardner":
-#       shell.prefix("source ~/.bashrc; ")
-# if config['flag_file']=="midway2":
-#       shell.prefix(". /scratch/midway2/nwknoblauch/spack/share/spack/setup-env.sh; ")
+  # if config['flag_file']=="gardner":
+  #       shell.prefix("source ~/.bashrc; ")
+  # if config['flag_file']=="midway2":
+  #       shell.prefix(". /scratch/midway2/nwknoblauch/spack/share/spack/setup-env.sh; ")
 
 
 with open("../workflow/annots.yaml", 'r') as stream:
     all_annot = yaml.safe_load(stream)
-    #(all_annot)
+      #(all_annot)
+
 wildcard_constraints:
-    chrom="\d+",
-    gwas="[fgdptb]+"
+      chrom="\d+",
+      gwas="[fgdptb]+"
 
 localrules: all, get_hm3_snplist,get_plinkfiles,get_frq,get_weights
 
 
 include: "dl_snakefile"
 include: "gwas_snakefile"
+#  include: "h5_gwas_snakefile"
+
 rule all:
     input:
-        expand("torus_{gwas}_{full_anno_name}_fdr.RDS",gwas=["ptb","fgd"],full_anno_name=["allhic","targethic","baithic"])
+        expand("torus_{gwas}_{full_anno_name}_fdr.RDS",gwas=["ptb","fgd"],full_anno_name=["allhic","targethic","baithic"]),
+        expand(config_d['1KG'] +"1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.rds",chrom=range(1,23)),
+        expand("aggregated/{gwas}_{anno_name}.RDS",gwas=["ptb","fgd"],anno_name=["allhic","targethic","baithic"])

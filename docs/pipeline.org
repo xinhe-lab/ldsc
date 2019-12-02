@@ -12,6 +12,7 @@ I start off by defining some absolute directories that will be referred to throu
     'BED':     !Dep {host: *hst, pref: *dl, path: {midway2: &bed "genomic_annotation/ptb_epigenetic/", gardner: *bed, desktop: "ptb_scratch/new_bed/"}}
     'L2':      !Dep {host: *hst, pref: *dl, path: {midway2: &l2 "genomic_annotation/L2/", gardner: *l2, desktop: "L2/"}}
     'ANNO':    !Dep {host: *hst, pref: *dl, path: {midway2: "genomic_annotation/torus_annotations", gardner: "genomic_annotation/torus_annotations", desktop: "genomic_annotation/torus_annotations"}}
+    'FINEMAP': !Dep {host: *hst, pref: *dl, path: {midway2: "genomic_annotation/susie_finemapping", gardner: "genomic_annotation/susie_finemapping", desktop: "genomic_annotation/susie_finemapping"}}
     'WEIGHTS': !Dep {host: *hst, pref: *dl, path: {midway2: &weight "1kg/1000G_Phase3_weights_hm3_no_MHC/", gardner: *weight, desktop: *weight}} 
     'FRQF':    !Dep {host: *hst, pref: *dl, path: {midway2: &frq "1kg/1000G_Phase3_frq/", gardner: *frq, desktop: "1kg/1000G_Phase3_frq/"}} 
     'GWAS':    !Dep {host: *hst, pref: *dl, path: {midway2: &gwas "ptb/", gardner: *gwas, desktop: "gwas_data/gwas_sumstats/"}}
@@ -30,6 +31,11 @@ __default__:
   nodes: '1'
   ntasks: '1'
   cpuspertask: '1'
+  name: "JOBNAME.{rule}.{wildcards}"
+  output: "output/{rule}.{wildcards}.txt"
+  error: "error/{rule}.{wildcards}.txt"
+  mem: '25gb'
+anno2torus_fdr:
   mem: '25gb'
 run_ldsc:
   mem: '45gb'
@@ -142,70 +148,105 @@ run_ldsc:
 
 #+BEGIN_SRC yaml :tangle '("../workflow/annots.yaml" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../workflow/annots.yaml"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../workflow/annots.yaml" )
   ---
+  clean_baseline:
+    - Coding_UCSC
+    - Conserved_LindbladToh
+    - Intron_UCSC
+    - PromoterFlanking_Hoffman
+    - Promoter_UCSC
+    - Transcr_Hoffman
+    - TSS_Hoffman
+    - UTR_3_UCSC
+    - UTR_5_UCSC
+    - GERP.NS
+    - GERP.RSsup4
+    - MAFbin1
+    - MAFbin2
+    - MAFbin3
+    - MAFbin4
+    - MAFbin5
+    - MAFbin6
+    - MAFbin7
+    - MAFbin8
+    - MAFbin9
+    - MAFbin10
+    - MAF_Adj_Predicted_Allele_Age
+    - MAF_Adj_LLD_AFR
+    - Recomb_Rate_10kb
+    - Nucleotide_Diversity_10kb
+    - Backgrd_Selection_Stat
+    - CpG_Content_50kb
+    - MAF_Adj_ASMC
+    - synonymous
+    - non_synonymous
+    - Conserved_Vertebrate_phastCons46way
+    - Conserved_Mammal_phastCons46way
+    - Conserved_Primate_phastCons46way
+    - BivFlnk
   baseline_model: 
-    - Coding_UCSCL2
-    - Conserved_LindbladTohL2
-    - CTCF_HoffmanL2
-    - DGF_ENCODEL2
-    - DHS_peaks_TrynkaL2
-    - DHS_TrynkaL2
-    - Enhancer_AnderssonL2
-    - Enhancer_HoffmanL2
-    - FetalDHS_TrynkaL2
-    - H3K27ac_HniszL2
-    - H3K27ac_PGC2L2
-    - H3K4me1_peaks_TrynkaL2
-    - H3K4me1_TrynkaL2
-    - H3K4me3_peaks_TrynkaL2
-    - H3K4me3_TrynkaL2
-    - H3K9ac_peaks_TrynkaL2
-    - H3K9ac_TrynkaL2
-    - Intron_UCSCL2
-    - PromoterFlanking_HoffmanL2
-    - Promoter_UCSCL2
-    - Repressed_HoffmanL2
-    - SuperEnhancer_HniszL2
-    - TFBS_ENCODEL2
-    - Transcr_HoffmanL2
-    - TSS_HoffmanL2
-    - UTR_3_UCSCL2
-    - UTR_5_UCSCL2
-    - WeakEnhancer_HoffmanL2
-    - GERP.NSL2
-    - GERP.RSsup4L2
-    - MAFbin1L2
-    - MAFbin2L2
-    - MAFbin3L2
-    - MAFbin4L2
-    - MAFbin5L2
-    - MAFbin6L2
-    - MAFbin7L2
-    - MAFbin8L2
-    - MAFbin9L2
-    - MAFbin10L2
-    - MAF_Adj_Predicted_Allele_AgeL2
-    - MAF_Adj_LLD_AFRL2
-    - Recomb_Rate_10kbL2
-    - Nucleotide_Diversity_10kbL2
-    - Backgrd_Selection_StatL2
-    - CpG_Content_50kbL2
-    - MAF_Adj_ASMCL2
-    - GTEx_eQTL_MaxCPPL2
-    - BLUEPRINT_H3K27acQTL_MaxCPPL2
-    - BLUEPRINT_H3K4me1QTL_MaxCPPL2
-    - BLUEPRINT_DNA_methylation_MaxCPPL2
-    - synonymousL2
-    - non_synonymousL2
-    - Conserved_Vertebrate_phastCons46wayL2
-    - Conserved_Mammal_phastCons46wayL2
-    - Conserved_Primate_phastCons46wayL2
-    - BivFlnkL2
-    - Human_Promoter_VillarL2
-    - Human_Enhancer_VillarL2
-    - Ancient_Sequence_Age_Human_PromoterL2
-    - Ancient_Sequence_Age_Human_EnhancerL2
-    - Human_Enhancer_Villar_Species_Enhancer_CountL2
-    - Human_Promoter_Villar_ExACL2
+    - Coding_UCSC
+    - Conserved_LindbladToh
+    - CTCF_Hoffman
+    - DGF_ENCODE
+    - DHS_peaks_Trynka
+    - DHS_Trynka
+    - Enhancer_Andersson
+    - Enhancer_Hoffman
+    - FetalDHS_Trynka
+    - H3K27ac_Hnisz
+    - H3K27ac_PGC2
+    - H3K4me1_peaks_Trynka
+    - H3K4me1_Trynka
+    - H3K4me3_peaks_Trynka
+    - H3K4me3_Trynka
+    - H3K9ac_peaks_Trynka
+    - H3K9ac_Trynka
+    - Intron_UCSC
+    - PromoterFlanking_Hoffman
+    - Promoter_UCSC
+    - Repressed_Hoffman
+    - SuperEnhancer_Hnisz
+    - TFBS_ENCODE
+    - Transcr_Hoffman
+    - TSS_Hoffman
+    - UTR_3_UCSC
+    - UTR_5_UCSC
+    - WeakEnhancer_Hoffman
+    - GERP.NS
+    - GERP.RSsup4
+    - MAFbin1
+    - MAFbin2
+    - MAFbin3
+    - MAFbin4
+    - MAFbin5
+    - MAFbin6
+    - MAFbin7
+    - MAFbin8
+    - MAFbin9
+    - MAFbin10
+    - MAF_Adj_Predicted_Allele_Age
+    - MAF_Adj_LLD_AFR
+    - Recomb_Rate_10kb
+    - Nucleotide_Diversity_10kb
+    - Backgrd_Selection_Stat
+    - CpG_Content_50kb
+    - MAF_Adj_ASMC
+    - GTEx_eQTL_MaxCPP
+    - BLUEPRINT_H3K27acQTL_MaxCPP
+    - BLUEPRINT_H3K4me1QTL_MaxCPP
+    - BLUEPRINT_DNA_methylation_MaxCPP
+    - synonymous
+    - non_synonymous
+    - Conserved_Vertebrate_phastCons46way
+    - Conserved_Mammal_phastCons46way
+    - Conserved_Primate_phastCons46way
+    - BivFlnk
+    - Human_Promoter_Villar
+    - Human_Enhancer_Villar
+    - Ancient_Sequence_Age_Human_Promoter
+    - Ancient_Sequence_Age_Human_Enhancer
+    - Human_Enhancer_Villar_Species_Enhancer_Count
+    - Human_Promoter_Villar_ExAC
   ptb_torus_model:
     allhic:
       - chip-seq-dec_diff-H3K27ac
@@ -323,9 +364,9 @@ run_ldsc:
 
 #+END_SRC
 
+** Master rule
 
 #+BEGIN_SRC snakemake :tangle '("../workflow/snakefile" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../workflow/snakefile"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../workflow/snakefile" )
-
 
   import os
   import yaml
@@ -335,23 +376,23 @@ run_ldsc:
 
 
   def host_loader(loader: yaml.loader.Loader,node: yaml.Node) -> Any:
-        fields = loader.construct_mapping(node,deep=True)
-        options=fields['options']
-        # print([options[name] for name in options.keys()])
-        ret_opt = [name for name in options.keys() if os.path.exists(options[name])]
-        # print(ret_opt)
-        return ret_opt[0]
+      fields = loader.construct_mapping(node,deep=True)
+      options=fields['options']
+      # print([options[name] for name in options.keys()])
+      ret_opt = [name for name in options.keys() if os.path.exists(options[name])]
+      # print(ret_opt)
+      return ret_opt[0]
 
 
   def dep_loader(loader: yaml.loader.Loader,node: yaml.Node) -> Any:
-        options = loader.construct_mapping(node,deep=True)
-        host = options['host']
-        pref = options['pref']
-        # print(pref)
-        host =options['host']
-        path = options['path']
-        full_path = pref+path[host] if pref is not None else path[host]
-        return full_path
+      options = loader.construct_mapping(node,deep=True)
+      host = options['host']
+      pref = options['pref']
+      # print(pref)
+      host =options['host']
+      path = options['path']
+      full_path = pref+path[host] if pref is not None else path[host]
+      return full_path
 
 
 
@@ -359,39 +400,37 @@ run_ldsc:
   yaml.Loader.add_constructor('!Dep', dep_loader)
 
 
-
   with open("../workflow/config_base.yaml") as stream:
-        config=yaml.load(stream,Loader=Loader)
+      config=yaml.load(stream,Loader=Loader)
 
   config_d = config['paths']
   config_e = config['envs']
   shell.prefix(config_e["cmd_prefix"])
-  # if config['flag_file']=="gardner":
-  #       shell.prefix("source ~/.bashrc; ")
-  # if config['flag_file']=="midway2":
-  #       shell.prefix(". /scratch/midway2/nwknoblauch/spack/share/spack/setup-env.sh; ")
-
 
   with open("../workflow/annots.yaml", 'r') as stream:
       all_annot = yaml.safe_load(stream)
-      #(all_annot)
+        #(all_annot)
+
   wildcard_constraints:
-      chrom="\d+",
-      gwas="[fgdptb]+"
+        chrom="\d+",
+        gwas="[fgdptb]+"
 
   localrules: all, get_hm3_snplist,get_plinkfiles,get_frq,get_weights
 
 
   include: "dl_snakefile"
   include: "gwas_snakefile"
+  #  include: "h5_gwas_snakefile"
+
   rule all:
       input:
-          expand("torus_{gwas}_{full_anno_name}_fdr.RDS",gwas=["ptb","fgd"],full_anno_name=["allhic","targethic","baithic"])
+          expand("torus_{gwas}_{full_anno_name}_fdr.RDS",gwas=["ptb","fgd"],full_anno_name=["allhic","targethic","baithic"]),
+          expand(config_d['1KG'] +"1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.rds",chrom=range(1,23)),
+          expand("aggregated/{gwas}_{anno_name}.RDS",gwas=["ptb","fgd"],anno_name=["allhic","targethic","baithic"])
 
 
 
 #+END_SRC
-
 
 
 ** Downloading files
@@ -550,23 +589,23 @@ I'll create three annotations out of the HiC data.  One will contain baits only,
 #+BEGIN_SRC R :tangle '("../scripts/merge_hic.R" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../scripts/merge_hic.R"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../scripts/merge_hic.R" )
   library(dplyr)
   library(forcats)
-library(purrr)
-library(readr)
+  library(purrr)
+  library(readr)
 
 
   library(ldmap)
   library(EigenH5)
   cold <- cols(
-  bait_chr = col_factor(paste0("chr", c(as.character(1:22), c("X","Y")))),
-  bait_start = col_double(),
-  bait_end = col_double(),
-  bait_name = col_character(),
-  otherEnd_chr = col_factor(paste0("chr", c(as.character(1:22), c("X","Y")))),
-  otherEnd_start = col_double(),
-  otherEnd_end = col_double(),
-  otherEnd_name = col_character(),
-  N_reads = col_double(),
-  score = col_double()
+    bait_chr = col_factor(paste0("chr", c(as.character(1:22), c("X","Y")))),
+    bait_start = col_double(),
+    bait_end = col_double(),
+    bait_name = col_character(),
+    otherEnd_chr = col_factor(paste0("chr", c(as.character(1:22), c("X","Y")))),
+    otherEnd_start = col_double(),
+    otherEnd_end = col_double(),
+    otherEnd_name = col_character(),
+    N_reads = col_double(),
+    score = col_double()
   )
   input_hic <- read_tsv(snakemake@input[["inputf"]],col_names=names(cold$cols),col_types=cold,skip=1L) %>%
     filter(bait_chr!="chrY", otherEnd_chr!="chrY")  %>%
@@ -586,9 +625,12 @@ library(readr)
 
   both_ld <- merge_ldmap_ranges(bait_ld,target_ld)
 
-  ldmap_range_2_data_frame(bait_ld) %>% write_tsv(baitf,col_names = FALSE)
-  ldmap_range_2_data_frame(target_ld) %>% write_tsv(targetf,col_names = FALSE)
-  ldmap_range_2_data_frame(both_ld) %>% write_tsv(bothf,col_names = FALSE)
+  ldmap_range_2_data_frame(bait_ld) %>%
+    write_tsv(baitf, col_names = FALSE)
+  ldmap_range_2_data_frame(target_ld) %>%
+    write_tsv(targetf, col_names = FALSE)
+  ldmap_range_2_data_frame(both_ld) %>%
+    write_tsv(bothf, col_names = FALSE)
 
 
 #+END_SRC
@@ -620,13 +662,14 @@ Unfortunately I don't have a remote source for the gwas summary statistics I can
 how to get to `meta.stat` the PTB gwas file.  First thing is to convert it to HDF5 for easier read/write of subsets
 
 *** Munging strategy
-We're going to create a ~cols~ object for each file. We'll ignore column names in every instance and use our own. if there are no column headers, we'll make a ~params~ argument
+
+We're going to create a ~cols~ object for each file. We'll ignore column names in every instance and use our own. 
 
 
 #+BEGIN_SRC R :tangle '("../scripts/ptbcols.R" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../scripts/ptbcols.R"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../scripts/ptbcols.R" )
   mc <- cols(
       rsid = col_character(),
-      chrom = col_integer(),
+      chrom = col_factor(c(as.character(1:22), "X")),
       pos = col_double(),
       A1 = col_character(),
       A2 = col_character(),
@@ -654,62 +697,33 @@ data_delim <- "\t"
 
 #+BEGIN_SRC R :tangle '( "../scripts/fgdcols.R" "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../scripts/fgdcols.R" )
 
-mc <- cols(
-  chrom = col_integer(), # Chr
-  pos = col_double(), #Pos
-  rsid = col_character(), #Rsid
-  A1 = col_character(), #Effect_allele
-  A2 = col_character(), #Non_effect_allele
-  beta = col_double(), #Effect
-  se = col_double(), #StdErr
-  pval = col_double(), #P
-  HetPVal = col_double(),
-  N = col_double(),
-  SNP = col_character()
-)
-data_delim <- " "
+  mc <- cols(
+    chrom = col_factor(c(as.character(1:22), "X")),
+    pos = col_double(), #Pos
+    rsid = col_character(), #Rsid
+    A1 = col_character(), #Effect_allele
+    A2 = col_character(), #Non_effect_allele
+    beta = col_double(), #Effect
+    se = col_double(), #StdErr
+    pval = col_double(), #P
+    HetPVal = col_double(),
+    N = col_double(),
+    SNP = col_character()
+  )
+  data_delim <- " "
 
 #+END_SRC
-
-
 
 
 #+BEGIN_SRC R :tangle '("../scripts/gwas2h5.R" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../scripts/gwas2h5.R"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../scripts/gwas2h5.R" )
 
   library(dplyr)
-library(purrr)
-library(readr)
-
-
+  library(purrr)
+  library(readr)
   library(EigenH5)
   library(readr)
   library(ldmap)
 
-
-  ## mc <- cols(
-  ##     rsid = col_character(),
-  ##     chrom = col_integer(),
-  ##     pos = col_double(),
-  ##     A1 = col_character(),
-  ##     A2 = col_character(),
-  ##     N = col_double(),
-  ##     freq = col_double(),
-  ##     beta = col_double(),
-  ##     se = col_double(),
-  ##     pval = col_double(),
-  ##     Q = col_double(),
-  ##     het = col_double(),
-  ##     N.local = col_double(),
-  ##     freq.local = col_double(),
-  ##     beta.local = col_double(),
-  ##     se.local = col_double(),
-  ##     pval.local = col_double(),
-  ##     N.23andMe = col_double(),
-  ##     freq.23andMe = col_double(),
-  ##     beta.23andMe = col_double(),
-  ##     se.23andMe = col_double(),
-  ##     pval.23andMe = col_double()
-  ## )
 
 
   input_f <- snakemake@input[["inputf"]]
@@ -746,32 +760,16 @@ library(readr)
            skip = 1L,
            callback_fun = callback_fun,
            col_types = mc,
-           progress = TRUE,
+           progress = FALSE,
            chunk_size = 150000)
 
   chrom_vec <- read_vector_h5v(output_f, "snp/chrom", i = integer())
-  chrom_df <- rle2offset(chrom_vec) %>%
-      dplyr::rename(chrom = value)
+  chrom_df <- rle2offset(as.integer(chrom_vec)) %>%
+    dplyr::rename(chrom = value) %>% 
+    mutate(offset=as.integer(offset),datasize=as.integer(datasize))
   write_df_h5(chrom_df,output_f,"chrom_offset")
 #+END_SRC
 
-
-
-
-#+BEGIN_SRC snakemake :tangle '("../workflow/gwas_snakefile" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../workflow/gwas_snakefile"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../workflow/gwas_snakefile" )
-
-  rule ptb_gwas2h5:
-      input:
-          inputf=config_d['GWAS']+"input/{gwas}.txt",
-          paramf="../scripts/{gwas}cols.R"
-      output:
-          outputf=protected(config_d['GWAS'] +"{gwas}_gwas.h5")
-      conda:
-          config_e['r']
-      script:
-          "../scripts/gwas2h5.R"
-
-#+END_SRC
 
 Next is to write some code to pull out the indices with the matching rsids (using coordinates, not rsid)
 
@@ -784,9 +782,6 @@ Next is to write some code to pull out the indices with the matching rsids (usin
   library(vroom)
   library(EigenH5)
   library(ldmap)
-
-  ## setwd("~/Dropbox/Repos/ldsc/workflow/")
-  ##   load("~/Dropbox/Repos/ldsc/workflow/tf.RData")
 
   input_f <- snakemake@input[["inputf"]]
   index_f <-  snakemake@input[["indexf"]]
@@ -831,12 +826,10 @@ Next is to write some code to pull out the indices with the matching rsids (usin
                        delim = "\t",
                        col_types = ind_spec
                      )  %>% 
-    rename(chrom=CHR,rsid=SNP,pos=BP)
+    rename(chrom = CHR, rsid = SNP, pos = BP)
   nr_index_df <- nrow(index_df)
 
-  chrom_df <- read_tibble_h5(input_f, "chrom_offset", list()) %>%
-    dplyr::filter(chrom == schrom) %>% dplyr::mutate(offset = as.integer(offset), datasize = as.integer(datasize)) %>% 
-    arrange(offset)
+  chrom_df <- read_df_h5(input_f, "chrom_offset")
 
   jdf <- pmap_dfr(chrom_df, function(chrom, datasize, offset) {
                                           #    subset_l <- seq(offset + 1, length.out = datasize)
@@ -876,54 +869,18 @@ library(magrittr)
 #+END_SRC
 
 
-#+BEGIN_SRC snakemake :tangle '("../workflow/gwas_snakefile" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../workflow/gwas_snakefile"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../workflow/gwas_snakefile" )
+#+BEGIN_SRC snakemake :tangle '("../workflow/h5_gwas_snakefile" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../workflow/h5_gwas_snakefile"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../workflow/h5_gwas_snakefile" )
 
-
-  rule indexgwas2h5:
+  rule ptb_gwas2h5:
       input:
-          inputf=config_d['GWAS'] +"{gwas}_gwas.h5",
-          indexf=config_d['L2'] +"baseline/baselineLD.{chrom}.l2.ldscore.gz"
-      params:
-          chrom="{chrom}"
+          inputf=config_d['GWAS']+"input/{gwas}.txt",
+          paramf="../scripts/{gwas}cols.R"
       output:
-          outputf=temp(config_d['GWAS'] +"hm3_index/{gwas}_gwas_hm_chr{chrom}.tsv")
+          outputf=protected(config_d['GWAS'] +"{gwas}_gwas.h5")
       conda:
           config_e['r']
       script:
-          "../scripts/index_gwas.R"
-
-  rule prep_ldsc_sumstsat:
-      input:
-          inputf=expand(config_d['GWAS'] +"hm3_index/{{gwas}}_gwas_hm_chr{chrom}.tsv",chrom=range(1,23))
-      params:
-          gwas_t=""
-      output:
-          outputf=temp(config_d['GWAS'] +"ldsc_input_pre/{gwas}_gwas.sumstats.gz")
-      conda:
-          config_e['r']
-      script:
-          "../scripts/gen_ldsc_sumstats.R"
-
-
-  rule check_ldsc_sumstat:
-      input:
-          config_d['GWAS'] +"ldsc_input_pre/{gwas}_gwas.sumstats.gz"
-      output:
-          outputf=config_d['GWAS'] +"ldsc_input/{gwas}_gwas.sumstats.gz"
-      params:
-          outputf=config_d['GWAS'] +"ldsc_input/{gwas}_gwas"
-      conda:
-          config_e['ldsc']
-      log:
-          logf=config_d['GWAS'] +"ldsc_input/{gwas}_gwas.log"
-      shell:
-          "munge_sumstats.py --sumstats {input} --out {params.outputf}"
-#+END_SRC
-
-#+BEGIN_SRC bash :session rcc2 :dir /ssh:rcc2:/project2/xinhe/software/ldsc/workflow/
-. "/project2/xinhe/software/miniconda3/etc/profile.d/conda.sh"
-conda activate cause_gwas
-snakemake -n
+          "../scripts/gwas2h5.R"
 
 
 #+END_SRC
@@ -1013,8 +970,6 @@ snakemake -n
       shell:
           "tar -xvzf {input} -C {params.L2}/baseline"
 
-
-
   rule unzip_annot:
       input:
           config_d['BED'] + "{annot}.bed.bz2"
@@ -1024,6 +979,29 @@ snakemake -n
           annot="[^/]+"
       shell:
           "bzip2 -cd {input} > {output}"
+
+
+
+
+#+END_SRC
+
+
+#+BEGIN_SRC snakemake :tangle '("../workflow/ldsc_snakefile" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../workflow/ldsc_snakefile"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../workflow/ldsc_snakefile" )
+
+
+  rule indexgwas2h5:
+      input:
+          inputf=config_d['GWAS'] +"{gwas}_gwas.h5",
+          indexf=config_d['L2'] +"baseline/baselineLD.{chrom}.l2.ldscore.gz"
+      params:
+          chrom="{chrom}"
+      output:
+          outputf=temp(config_d['GWAS'] +"hm3_index/{gwas}_gwas_hm_chr{chrom}.tsv")
+      conda:
+          config_e['r']
+      script:
+          "../scripts/index_gwas.R"
+
 
 
   rule make_annot:
@@ -1040,10 +1018,33 @@ snakemake -n
           "make_annot.py --bed-file {input.anno_bed} --bimfile {input.bim} --annot-file {output.annot} --annot-name {params.anno_name}"
 
 
-#+END_SRC
+  rule prep_ldsc_sumstsat:
+      input:
+          inputf=expand(config_d['GWAS'] +"hm3_index/{{gwas}}_gwas_hm_chr{chrom}.tsv",chrom=range(1,23))
+      params:
+          gwas_t=""
+      output:
+          outputf=temp(config_d['GWAS'] +"ldsc_input_pre/{gwas}_gwas.sumstats.gz")
+      conda:
+          config_e['r']
+      script:
+          "../scripts/gen_ldsc_sumstats.R"
 
 
-#+BEGIN_SRC snakemake :tangle '("../workflow/ldsc_snakefile" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../workflow/ldsc_snakefile"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../workflow/ldsc_snakefile" )
+  rule check_ldsc_sumstat:
+      input:
+          config_d['GWAS'] +"ldsc_input_pre/{gwas}_gwas.sumstats.gz"
+      output:
+          outputf=config_d['GWAS'] +"ldsc_input/{gwas}_gwas.sumstats.gz"
+      params:
+          outputf=config_d['GWAS'] +"ldsc_input/{gwas}_gwas"
+      conda:
+          config_e['ldsc']
+      log:
+          logf=config_d['GWAS'] +"ldsc_input/{gwas}_gwas.log"
+      shell:
+          "munge_sumstats.py --sumstats {input} --out {params.outputf}"
+
 
   rule pull_rsid:
       input:
@@ -1168,52 +1169,62 @@ snakemake -n
 ** Running Torus
 
 The input that torus accepts is very similar to stratified LD score regression.  
-The main difference is torus has a notion of "loci"
+The main difference is torus has a notion of "loci".  I'll be using the ldetect_EUR regions as windows.
+
+
+*** Enrichment Analysis
+
+*** Effect-Size Enrichment Analysis
+
+Deterministic Approximation of Posteriors (DAP) is a method for estimating the posterior probability that a candidate GWAS SNP is a causal variant, 
+
 
 #+BEGIN_SRC R :tangle '("../scripts/gen_torus_sumstats.R" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../scripts/gen_torus_sumstats.R"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../scripts/gen_torus_sumstats.R" )
 
-
-    library(readr)
-    library(dplyr)
-    library(purrr)
-    library(forcats)
-    library(ldmap)
-    library(EigenH5)
-    data(ldetect_EUR)
-
-
-    sumstat_h5f <- snakemake@input[["inputf"]]
-    snplist <- snakemake@input[["snplist"]]
-    chromlist <- snakemake@params[["chroms"]]
-    outputf <- snakemake@output[["outputf"]]
-
-    chrom_df <- read_df_h5(sumstat_h5f, "chrom_offset") %>% 
-      dplyr::mutate(offset = as.integer(offset),
-                    datasize = as.integer(datasize)) %>%
-      dplyr::arrange(offset)
-
-  bc <- bim_cols(chrom=col_chromosome(prefix_chr=FALSE))
-  index_l <- purrr::map(snplist, ~read_plink_bim(.x,cols = bc)$snp_struct)
-  mutate(chrom_df,snplist_l = index_l) %>% pwalk(
-                                             function(chrom, offset, datasize, snplist_l, ...) {
-                                               fe <- file.exists(outputf)
-                                               idf <- EigenH5::read_df_h5(
-                                                                 filename = sumstat_h5f,
-                                                                 datapath = "snp",
-                                                                 subcols = c("snp_struct", "beta", "se"),
-                                                                 offset = offset,
-                                                                 datasize = datasize) %>%
-                                                 match_ref_panel(snplist_l) %>%
-                                                 filter(!is.na(index)) %>% 
-                                                 dplyr::transmute(SNP = match,
-                                                                  locus = snp_in_range(SNP, ldetect_EUR),
-                                                                  `z-vals` =  beta / se ) %>%
-                                               
-                                                 write_delim(idf,outputf, delim = " ",append = !fe)
-                                               })
+  ## save.image("../workflow/ip.RData")
+  ## stop()
+      library(readr)
+      library(dplyr)
+      library(purrr)
+      library(forcats)
+      library(ldmap)
+      library(EigenH5)
+      data(ldetect_EUR)
 
 
+      sumstat_h5f <- snakemake@input[["inputf"]]
+      snplist <- snakemake@input[["snplist"]]
+      chromlist <- snakemake@params[["chroms"]]
+      outputf <- snakemake@output[["outputf"]]
 
+      chrom_df <- read_df_h5(sumstat_h5f, "chrom_offset") %>% 
+        dplyr::slice(1:22) %>% 
+        dplyr::mutate(offset = as.integer(offset),
+                      datasize = as.integer(datasize)) %>%
+        dplyr::arrange(offset)
+
+    bc <- bim_cols(chrom=col_chromosome(prefix_chr=FALSE))
+    index_l <- purrr::map(snplist, ~read_plink_bim(.x,cols = bc)$snp_struct)
+  mutate(chrom_df,snplist_l = index_l) %>%
+    pwalk(
+      function(chrom, offset, datasize, snplist_l, ...) {
+        fe <- file.exists(outputf)
+        idf <- EigenH5::read_df_h5(
+                          filename = sumstat_h5f,
+                          datapath = "snp",
+                          subcols = c("snp_struct", "beta", "se"),
+                          offset = offset,
+                          datasize = datasize) %>%
+          match_ref_panel(snplist_l) %>%
+          filter(!is.na(index)) %>% 
+          dplyr::transmute(SNP = match,
+                           locus = snp_in_range(SNP, ldetect_EUR),
+                           `z-vals` =  beta / se )
+        stopifnot(all(!is.na(idf$locus)))
+
+
+        write_delim(idf,outputf, delim = " ",append = fe)
+      })
 
 #+END_SRC 
 
@@ -1257,15 +1268,141 @@ The main difference is torus has a notion of "loci"
 
 
 #+BEGIN_SRC R :tangle '("../scripts/run_torus_fdr.R" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../scripts/run_torus_fdr.R"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../scripts/run_torus_fdr.R" )
-
+source("renv/activate.R")
 library(daprcpp)
 
 saveRDS(torus_fdr(snakemake@input[["gwasf"]],snakemake@input[["annof"]]),snakemake@output[["outputf"]])
 
+#+END_SRC
+
+
+#+BEGIN_SRC R :tangle '("../scripts/filter_torus_p.R" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../scripts/filter_torus_p.R"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../scripts/filter_torus_p.R" )
+  source("renv/activate.R")
+    library(dplyr)
+    library(purrr)
+    library(readr)
+    fdrc <- as.numeric(snakemake@params[["fdrc"]] %||% "0.1")
+    fdrff <- snakemake@input[["fdrf"]]
+    readRDS(fdrff) %>% 
+      filter(fdr <= fdrc)  %>%
+      select(region_id) %>%
+      write_tsv(snakemake@output[["off"]], col_names = FALSE)
+
+
+#+END_SRC 
+
+
+#+BEGIN_SRC R :tangle '("../scripts/ldmap_gwas.R" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../scripts/ldmap_gwas.R"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../scripts/ldmap_gwas.R" )
+
+  source("renv/activate.R")
+  library(EigenH5)
+  library(ldmap)
+  library(dplyr)
+  data(ldetect_EUR)
+  inputf <- snakemake@input[["inputf"]]
+  cdf <- read_df_h5(inputf,"chrom_offset") %>% slice(1:22) 
+  cds <- as.integer(sum(cdf$datasize))
+
+  iv <- read_vector_h5(inputf, "snp/snp_struct", 1L:cds)
+  ldi <- snp_in_range(iv, ldetect_EUR)
+  rle2offset(ldi) %>% 
+    rename(region_id=value) %>%
+    mutate(offset=as.integer(offset)) %>% 
+    saveRDS(snakemake@output[["offsetf"]])
 
 #+END_SRC
 
 
+#+BEGIN_SRC R :tangle '("../scripts/ldmap_bk.R" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../scripts/ldmap_bk.R"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../scripts/ldmap_bk.R" )
+
+source("renv/activate.R")
+library(bigsnpr)
+rds <- snp_readBed(snakemake@input[["bedlist"]], backingfile = snakemake@params[["rdsp"]])
+
+#+END_SRC
+
+
+#+BEGIN_SRC R :tangle '("../scripts/ldmap_ld.R" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../scripts/ldmap_ld.R"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../scripts/ldmap_ld.R" )
+
+source("renv/activate.R")
+library(bigsnpr)
+library(ldmap)
+library(dplyr)
+library(purrr)
+
+data(ldetect_EUR)
+rdsf <- snakemake@input[["rdslist"]]
+ld_id <- snakemake@params[["region"]]
+stopifnot(!is.null(ld_id),length(ld_id)==1)
+ld_id <- as.integer(ld_id)
+ldmr <- ldetect_EUR[ld_id]
+srds <- ldmap:::subset_rds(ldmr = ldmr,reference_files = rdsf,pattern = paste0(ld_id,"_"))
+saveRDS(panel_ld(srds,FALSE),snakemake@output[["ldf"]])
+
+#+END_SRC
+
+
+#+BEGIN_SRC R :tangle '("../scripts/run_torus_p.R" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../scripts/run_torus_p.R"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../scripts/run_torus_p.R" )
+  source("renv/activate.R")
+  ## save.image("ip.RData")
+  ## stop()
+    library(daprcpp)
+    library(dplyr)
+    library(purrr)
+    library(readr)
+    library(ldmap)
+    library(fs)
+
+    prior_r <- scan(snakemake@input[["prior_r"]],what = character())
+    od <- snakemake@output[["outputd"]]
+    torus_ret <- daprcpp:::run_torus_cmd(gf=snakemake@input[["gwasf"]],af=snakemake@input[["annof"]],torus_p=prior_r)
+
+    saveRDS(torus_ret$df,snakemake@output[["outputf"]])
+
+    iwalk(torus_ret$prior,function(pr,region_id) {
+    write_tsv(pr,fs::path(od,region_id,ext = "txt.gz"))
+    })
+
+
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC R :tangle '("../scripts/susie_r.R" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../scripts/susie_r.R"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../scripts/susie_r.R" )
+source("renv/activate.R")
+  library(ldmap)
+  library(dplyr)
+  library(purrr)
+  library(vroom)
+
+  ld_regions <- readRDS(snakemake@input[["ldgf"]]) %>%
+    filter(region_id == as.integer(snakemake@params[["region_id"]]))
+  stopifnot( nrow(ld_regions) == 1L )
+  gwas_df <- read_df_h5(snakemake@input[["inputf"]],
+                        datapath = "snp",
+                        subcols = c("snp_struct", "beta", "se","N"),
+                        offset =  ld_regions$offset,
+                        datasize = ld_regions$datasize) %>% 
+    align_reference(snakemake@input[["rdsf"]]) %>% mutate(snp_struct = as.character(snp_struct))
+  fmt <- gwas_df$snp_struct
+  R <- readRDS(snakemake@input[["ldf"]])[fmt,fmt]
+
+
+  gwas_df <- vroom(snakemake@input[["priorf"]],delim = "\t",col_names = c("snp_struct","prior","region_id")) %>% inner_join(gwas_df)
+
+
+  saveRDS(susie_bhat(
+    bhat = gwas_df$beta,
+    shat = gwas_df$se,
+    R = R,
+    n = max(gwas_df$N), prior_weights = gwas_df$prior,
+    L = 1,
+    estimate_residual_variance = TRUE,
+    estimate_prior_variance = FALSE
+  ), snakemake@output[["outputf"]])
+
+
+#+END_SRC
 
 #+BEGIN_SRC snakemake :tangle '("../workflow/gwas_snakefile" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../workflow/gwas_snakefile"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../workflow/gwas_snakefile" )
 
@@ -1274,25 +1411,25 @@ saveRDS(torus_fdr(snakemake@input[["gwasf"]],snakemake@input[["annof"]]),snakema
           inputf=config_d['GWAS'] +"{gwas}_gwas.h5",
           snplist = expand(config_d['1KG'] +"1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.bim",chrom=range(1,23))
       output:
-          outputf=temp(config_d['GWAS'] +"{gwas}_torus.txt.gz")
+          outputf=config_d['GWAS'] +"{gwas}_torus.txt.gz"
       conda:
           config_e['r']
       script:
           "../scripts/gen_torus_sumstats.R"
-
+        
   def get_annot_torus_files(wildcards):
-          annok = all_annot['ptb_torus_model'].get(wildcards.anno_name)
-          ret_dict = {
-              'annot_f' :expand(config_d['BED'] +"{anno_name}.bed",anno_name=annok),
-              'bimf': expand(config_d['1KG'] +"1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.bim",chrom=range(1,23))
-          }
-          return ret_dict
+      annok = all_annot['ptb_torus_model'].get(wildcards.anno_name)
+      ret_dict = {
+          'annot_f' :expand(config_d['BED'] +"{anno_name}.bed",anno_name=annok),
+          'bimf': expand(config_d['1KG'] +"1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.bim",chrom=range(1,23))
+      }
+      return ret_dict
 
   rule anno2torus:
       input:
           unpack(get_annot_torus_files)
       output:
-          outputf=temp(config_d['ANNO'] +"{anno_name}.txt.gz")
+          outputf=config_d['ANNO'] +"{anno_name}.txt.gz"
       params:
           chroms=range(1,22),
           annot=lambda wildcards: expand("{anno_name}",anno_name=all_annot['ptb_torus_model'][wildcards.anno_name])
@@ -1311,5 +1448,300 @@ saveRDS(torus_fdr(snakemake@input[["gwasf"]],snakemake@input[["annof"]]),snakema
           config_e['r']
       script:
           "../scripts/run_torus_fdr.R"
+        
+        
+  rule torus_fdrf:
+      input:
+          fdrf="torus_{gwas}_{anno_name}_fdr.RDS"
+      params:
+          fdrc=0.1
+      output:
+          off="torus_{gwas}_{anno_name}_fdr.tsv"
+      script:
+          "../scripts/filter_torus_p.R"
+
+
+  rule ldmap_bk:
+      input:
+          bimlist = config_d['1KG'] +"1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.bim",
+          bedlist = config_d['1KG'] +"1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.bed"
+      params:
+          rdsp = config_d['1KG'] +"1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}"
+      output:
+          rdslist = config_d['1KG'] +"1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.rds"
+      script:
+          "../scripts/ldmap_bk.R"
+        
+  rule ldmap_gwas:
+      input:
+          inputf=config_d['GWAS'] +"{gwas}_gwas.h5"
+      output:
+          offsetf=config_d['GWAS'] +"{gwas}_gwas_ldetect.RDS"
+      script:
+         "../scripts/ldmap_gwas.R"
+          
+      
+          
+  rule ldmap_ld:
+      input:
+          rdslist = expand(config_d['1KG'] +"1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.rds",chrom=range(1,23))
+      params:
+          region="{region_id}"
+      output:
+          ldf = config_d['1KG'] +"1000G_EUR_Phase3_plink/LD/{chrom}_{region_id}.rds",
+          rdsf = config_d['1KG'] +"1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}_{region_id}_1.rds"
+      script:
+          "../scripts/ldmap_ld.R"
+
+
+  checkpoint anno2torusp:
+      input:
+          gwasf=config_d['GWAS'] +"{gwas}_torus.txt.gz",
+          annof=config_d['ANNO'] +"{anno_name}.txt.gz",
+          prior_r="torus_{gwas}_{anno_name}_fdr.tsv"
+      output:
+          outputf="torus_{gwas}_{anno_name}_mv.RDS",
+          outputd=directory(config_d['ANNO'] +"torus_{gwas}_{anno_name}")
+      conda:
+          config_e['r']
+      script:
+          "../scripts/run_torus_p.R"
+
+  rule susie_p:
+      input:
+          rdsf = config_d['1KG'] +"1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}_{region_id}_1.rds",
+          ldf = config_d['1KG'] +"1000G_EUR_Phase3_plink/LD/{chrom}_{region_id}.rds",
+          ldgf=config_d['GWAS']+ "{gwas}_gwas_ldetect.RDS",
+          priorf=config_d['ANNO'] +"torus_{gwas}_{anno_name}/{region_id}.prior",
+          inputf=config_d['GWAS'] +"{gwas}_gwas.h5"
+      params:
+          region_id="{region_id}"
+      output:
+          outputf=config_d['FINEMAP']+"torus_{gwas}_{anno_name}/{i}.RDS"
+      script:
+          "../scripts/susie_r.R"
+        
+
+  def aggregate_input(wildcards):
+      checkpoint_output = checkpoints.anno2torusp.get(**wildcards).output['outputd']
+      return expand(config_d['FINEMAP']+"torus_{gwas}_{anno_name}/{i}.RDS",
+                    gwas=wildcards.gwas,
+                    anno_name=wildcards.anno_name,
+                    i=glob_wildcards(os.path.join(checkpoint_output, "{i}.prior")).i)
+      
 
 #+END_SRC
+
+
+
+#+BEGIN_SRC R :tangle '("../scripts/susie_r.R" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../scripts/susie_r.R"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../scripts/susie_r.R" )
+source("renv/activate.R")
+saveRDS(purrr::map(snakemake@input,readRDS),snakemake@output[["outputf"]])
+
+#+END_SRC
+
+
+
+#+BEGIN_SRC snakemake :tangle '("../workflow/gwas_snakefile" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../workflow/gwas_snakefile"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../workflow/gwas_snakefile" )
+  rule comb_susie:
+        input:
+            aggregate_input
+        output:
+            outputf="aggregated/{gwas}_{anno_name}.RDS"
+        script:
+            "../scripts/agg_susie.R"
+
+
+#+END_SRC
+
+
+** Generating Plots
+
+*** Gene data
+
+#+BEGIN_SRC R :tangle '("../scripts/ldmr_geneplot_data.R" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../scripts/ldmr_geneplot_data.R"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../scripts/ldmr_geneplot_data.R" )
+
+  library(stringr)
+  library(Homo.sapiens)
+  library(ggbio)
+  library(RColorBrewer)
+  library(drake)
+  library(purrr)
+  library(dplyr)
+  library(biovizBase)
+  library(Homo.sapiens)
+
+  txdb <- TxDb(Homo.sapiens)
+
+  chrp <- snakemake@params[["chrom"]]
+  start <- snakemake@params[["start"]]
+  end <- snakemake@params[["end"]]
+
+  gr <- GenomicRanges::GRanges(seqnames = chrp,start = start,end = end)
+
+  suppressMessages(tg_df <-
+                     OrganismDbi::selectByRanges(
+                                    x = Homo.sapiens,
+                                    ranges = gr,
+                                    columns = c("SYMBOL", "TXNAME")) %>%
+                     as_tibble() %>%
+                     dplyr::select(tx_name = TXNAME, symbol = SYMBOL) %>%
+                     tidyr::unnest(cols = c(tx_name, symbol)))
+
+  suppressMessages(gr.txdb <-
+                     crunch(txdb, which = gr) %>%
+                     as_tibble() %>%
+                     mutate(tx_name = as.character(tx_name)) %>%
+                     inner_join(tg_df) %>%
+                     plyranges::as_granges() %>%
+                     split(.$symbol))
+
+
+  saveRDS(gr.txdb,snakemake@output[["outf"]])
+
+
+
+#+END_SRC
+
+*** Anno data
+
+#+BEGIN_SRC R :tangle '("../scripts/ldmr_annoplot_data.R" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../scripts/ldmr_annoplot_data.R"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../scripts/ldmr_annoplot_data.R" )
+
+anno_fun <- function(feature,gr,lev){
+  tff <- feature
+  t_feat_name <- dplyr::filter(all_feat_df,feature==tff) %>% dplyr::pull(category)
+  feat_name=paste0("ra_",make.names(feature))
+  plyranges::mutate(readd(feat_name,character_only=TRUE,cache=cc),feature=t_feat_name) %>% 
+    plyranges::join_overlap_inner(x = .,gr) %>%
+ plyranges::set_genome_info(.data = .,genome="hg19")
+}
+
+grp_anno_fun <- function(df){
+  feat_fact <- factor(df$feature)
+  pmap(df,anno_fun,lev=levels(feat_fact)) %>% set_names(make.names(df$feature)) %>% 
+     plyranges::bind_ranges() %>% mutate(feature_fact=as.integer(factor(feature)))
+}
+
+best_fdr_df$stop[2] <- best_fdr_df$stop[2]+20000
+#best_fdr_df <- mutate(best_fdr_df,stop=if_else(region_id==356,))
+ld_dfrl <- best_fdr_df %>% 
+  transmute(seqnames=paste0("chr",chrom),start=start,width=stop-start,region_id=region_id,p_rank=p_rank) %>%
+  rowwise() %>% 
+  do(.,tibble(
+    gr=list(plyranges::set_genome_info(plyranges::as_granges(.,keep_mcols=FALSE),"hg19")),
+    region_id=.$region_id,p_rank=.$p_rank)) %>% ungroup()
+
+
+bait_hic <- transmute(hic,seqnames=bait_chr,start=bait_start,width=bait_end-start,N_reads=N_reads,map_id=map_id,target_bait="bait") %>%
+  plyranges::as_granges()
+target_hic <- transmute(hic,seqnames=otherEnd_chr,start=otherEnd_start,width=otherEnd_end-start,N_reads=N_reads,map_id=map_id,target_bait="target") %>%
+  plyranges::as_granges()
+
+
+midpoint_df <- function(gr){
+  tb <- gr$target_bait[1]
+  midpoint_name <- paste0("midpoint_",tb)
+  if(tb=="target")
+  return(gr %>% as_tibble() %>% 
+    dplyr::transmute(seqnames=seqnames,midpoint_target=start+width/2,map_id=map_id,credible_set_target=credible_set,reads=N_reads))
+  return(gr %>% as_tibble() %>% 
+    dplyr::transmute(seqnames=seqnames,midpoint_bait=start+width/2,map_id=map_id,credible_set_bait=credible_set))
+}
+
+
+join_gr_left <- function(gr,cred_df){
+    plyranges::join_overlap_left(gr,cred_df) %>% 
+    mutate(credible_set=if_else(is.na(credible_set),FALSE,credible_set))
+}
+
+
+hic_l <- map2(ld_dfrl$gr,susie_cred,function(gr,sgr){
+  n_bait <- plyranges::filter_by_overlaps(bait_hic,gr)
+  
+  n_target <- plyranges::filter_by_overlaps(target_hic,gr) 
+  hic_gr <- plyranges::bind_ranges(n_bait,n_target) %>% 
+    mutate(group="Hi-C") %>% join_gr_left(sgr)
+  
+  
+  hic_df <- midpoint_df(join_gr_left(n_bait,sgr)) %>% 
+    inner_join(midpoint_df(join_gr_left(n_target,sgr))) %>% mutate(any_credible_set=credible_set_target|credible_set_bait,end_height=1) %>% dplyr::filter(midpoint_bait!=midpoint_target)
+  
+  with_cred <- filter(hic_df,any_credible_set)
+  no_cred <-  filter(hic_df,!any_credible_set)
+  
+  gpr <-   ggplot() +
+    geom_rect(data = hic_gr,aes(group=group,alpha=N_reads,col=credible_set),rect.height=0.1,group.selfish=FALSE)
+  if(nrow(no_cred)>0){
+    gpr <- gpr + geom_curve(
+      data = no_cred,
+      aes(x=midpoint_bait,y=end_height,xend=midpoint_target,yend=end_height,alpha=0.4),
+      curvature=0.5,
+      arrow=arrow(length=unit(0.025,"npc"))
+      )
+  }
+  if(nrow(with_cred)>0){
+     gpr <- gpr + geom_curve(
+      data = with_cred,
+      aes(x=midpoint_bait,y=end_height,xend=midpoint_target,yend=end_height),
+      curvature=0.9,col="red",
+      arrow=arrow(length=unit(0.025,"npc"))
+      )
+  }
+  gpr <- gpr+xlab("")+theme(legend.position = "none",
+                            axis.text.y=element_blank(),
+                            axis.title.y = element_text(angle=90),
+                            axis.ticks.y=element_blank()) + 
+    scale_color_manual(values=c("FALSE"="black","TRUE"="red")) + 
+    ylim(0,2)+
+    ylab("Hi-C\nInteractions")
+  return(gpr)
+})
+
+
+
+anno_rl <- unnest(best_model_df,cols=c(features)) %>% 
+  dplyr::select(feature=features) %>% dplyr::filter(str_detect(feature,"hic_all",negate=TRUE)) %>% 
+  dplyr::mutate(ina=NA_integer_) %>%
+  dplyr::inner_join(mutate(ld_dfrl,ina=NA_integer_)) %>% 
+  dplyr::select(-ina) %>% 
+  tidyr::nest(data=c(gr,feature)) %>% 
+  mutate(anno_l=map(data, ~grp_anno_fun(.x)))
+
+anno_l <- map2(anno_rl$anno_l,susie_cred,function(x,y){
+  nx <- join_gr_left(x,y) 
+  ggplot(nx) + 
+    geom_rect(aes(group=feature,col=credible_set,fill=credible_set)) + 
+    scale_color_manual(values=c("FALSE"="black","TRUE"="red")) +
+    scale_fill_manual(values=c("FALSE"="black","TRUE"="red")) + 
+    theme(legend.position = "none")
+})
+
+#+END_SRC
+
+
+*** PIP data
+
+#+BEGIN_SRC R :tangle '("../scripts/ldmr_pipplot_data.R" "/ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/docs/../scripts/ldmr_pipplot_data.R"  "/ssh:rcc2:/project2/xinhe/software/ldsc/docs/../scripts/ldmr_pipplot_data.R" )
+
+read_susie <- function(model,L=1,p_rank=1,region_id,...){
+  target_name <- glue::glue("susie_res_{p_rank}L_{L}L_prior_r_mix_results_.scratch.midway2.nwknoblauch.ptb_scratch.{model}.txt.gz")
+  
+  target_res <- readd(target_name,character_only = T,cache=cc)
+  
+  set_r <- pluck(target_res,"susie_res","sets","cs",.default = list())
+  sets <- flatten_int(set_r)
+  stopifnot(all(as.integer(target_res$df$region_id)==as.integer(region_id)))
+  ret <- mutate(target_res$df,
+         susie_id=1:dplyr::n(),
+         credible_set=susie_id %in% sets,best_pip=pip==max(pip)) %>% 
+    dplyr::select(-susie_id) %>% dplyr::left_join(null_model_df) %>% 
+    mutate(seqnames=paste0("chr",chrom),log10_p=-log10(p),width=1) %>%
+    dplyr::select(seqnames,start=pos,log10_p,prior,pip,credible_set,best_pip,null_pip,t_r,width,rsid=id) %>% 
+    plyranges::as_granges() %>%
+    plyranges::set_genome_info("hg19")
+  
+}
+
+#+END_SRC
+
+

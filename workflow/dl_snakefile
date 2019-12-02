@@ -159,17 +159,3 @@ rule unzip_annot:
         annot="[^/]+"
     shell:
         "bzip2 -cd {input} > {output}"
-
-
-rule make_annot:
-    input:
-        anno_bed=config_d['BED'] +"{annot}.bed",
-        bim=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.bim"
-    output:
-        annot = config_d['L2'] +"{annot}.{chrom}.annot.gz"
-    params:
-        anno_name='{annot}'
-    conda:
-        config_e['ldsc']
-    shell:
-        "make_annot.py --bed-file {input.anno_bed} --bimfile {input.bim} --annot-file {output.annot} --annot-name {params.anno_name}"

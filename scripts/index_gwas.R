@@ -5,9 +5,6 @@ library(vroom)
 library(EigenH5)
 library(ldmap)
 
-## setwd("~/Dropbox/Repos/ldsc/workflow/")
-##   load("~/Dropbox/Repos/ldsc/workflow/tf.RData")
-
 input_f <- snakemake@input[["inputf"]]
 index_f <-  snakemake@input[["indexf"]]
 chrom <- snakemake@params[["chrom"]]
@@ -51,12 +48,10 @@ index_df <- vroom::vroom(
                      delim = "\t",
                      col_types = ind_spec
                    )  %>% 
-  rename(chrom=CHR,rsid=SNP,pos=BP)
+  rename(chrom = CHR, rsid = SNP, pos = BP)
 nr_index_df <- nrow(index_df)
 
-chrom_df <- read_tibble_h5(input_f, "chrom_offset", list()) %>%
-  dplyr::filter(chrom == schrom) %>% dplyr::mutate(offset = as.integer(offset), datasize = as.integer(datasize)) %>% 
-  arrange(offset)
+chrom_df <- read_df_h5(input_f, "chrom_offset")
 
 jdf <- pmap_dfr(chrom_df, function(chrom, datasize, offset) {
                                         #    subset_l <- seq(offset + 1, length.out = datasize)

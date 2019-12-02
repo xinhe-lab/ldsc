@@ -1,5 +1,5 @@
 mc <- cols(
-  chrom = col_integer(), # Chr
+  chrom = col_factor(c(as.character(1:22), "X")),
   pos = col_double(), #Pos
   rsid = col_character(), #Rsid
   A1 = col_character(), #Effect_allele

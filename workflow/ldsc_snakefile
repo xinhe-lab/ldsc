@@ -1,3 +1,60 @@
+rule indexgwas2h5:
+    input:
+        inputf=config_d['GWAS'] +"{gwas}_gwas.h5",
+        indexf=config_d['L2'] +"baseline/baselineLD.{chrom}.l2.ldscore.gz"
+    params:
+        chrom="{chrom}"
+    output:
+        outputf=temp(config_d['GWAS'] +"hm3_index/{gwas}_gwas_hm_chr{chrom}.tsv")
+    conda:
+        config_e['r']
+    script:
+        "../scripts/index_gwas.R"
+
+
+
+rule make_annot:
+    input:
+        anno_bed=config_d['BED'] +"{annot}.bed",
+        bim=config_d['1KG'] + "1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.bim"
+    output:
+        annot = config_d['L2'] +"{annot}.{chrom}.annot.gz"
+    params:
+        anno_name='{annot}'
+    conda:
+        config_e['ldsc']
+    shell:
+        "make_annot.py --bed-file {input.anno_bed} --bimfile {input.bim} --annot-file {output.annot} --annot-name {params.anno_name}"
+
+
+rule prep_ldsc_sumstsat:
+    input:
+        inputf=expand(config_d['GWAS'] +"hm3_index/{{gwas}}_gwas_hm_chr{chrom}.tsv",chrom=range(1,23))
+    params:
+        gwas_t=""
+    output:
+        outputf=temp(config_d['GWAS'] +"ldsc_input_pre/{gwas}_gwas.sumstats.gz")
+    conda:
+        config_e['r']
+    script:
+        "../scripts/gen_ldsc_sumstats.R"
+
+
+rule check_ldsc_sumstat:
+    input:
+        config_d['GWAS'] +"ldsc_input_pre/{gwas}_gwas.sumstats.gz"
+    output:
+        outputf=config_d['GWAS'] +"ldsc_input/{gwas}_gwas.sumstats.gz"
+    params:
+        outputf=config_d['GWAS'] +"ldsc_input/{gwas}_gwas"
+    conda:
+        config_e['ldsc']
+    log:
+        logf=config_d['GWAS'] +"ldsc_input/{gwas}_gwas.log"
+    shell:
+        "munge_sumstats.py --sumstats {input} --out {params.outputf}"
+
+
 rule pull_rsid:
     input:
         config_d["L2"]+"baseline/baselineLD.{chrom}.l2.ldscore.gz"

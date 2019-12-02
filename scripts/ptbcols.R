@@ -1,6 +1,6 @@
 mc <- cols(
       rsid = col_character(),
-      chrom = col_integer(),
+      chrom = col_factor(c(as.character(1:22), "X")),
       pos = col_double(),
       A1 = col_character(),
       A2 = col_character(),
