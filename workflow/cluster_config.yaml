@@ -5,12 +5,12 @@ __default__:
   nodes: '1'
   ntasks: '1'
   cpuspertask: '1'
-  name: "JOBNAME.{rule}.{wildcards}"
   output: "output/{rule}.{wildcards}.txt"
   error: "error/{rule}.{wildcards}.txt"
-  mem: '25gb'
+  export: "ALL"
+  mem: '25G'
 anno2torus_fdr:
-  mem: '25gb'
+  mem: '45G'
 run_ldsc:
   mem: '45gb'
   time: '02:00:00'

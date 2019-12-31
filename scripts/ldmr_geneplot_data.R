@@ -1,37 +1,46 @@
-library(stringr)
-library(Homo.sapiens)
-library(ggbio)
-library(RColorBrewer)
-library(drake)
-library(purrr)
-library(dplyr)
-library(biovizBase)
-library(Homo.sapiens)
+source("renv/activate.R")
+  library(stringr)
+  library(Homo.sapiens)
 
-txdb <- TxDb(Homo.sapiens)
+  library(RColorBrewer)
 
-chrp <- snakemake@params[["chrom"]]
-start <- snakemake@params[["start"]]
-end <- snakemake@params[["end"]]
+  library(purrr)
+  library(dplyr)
+  library(biovizBase)
+  library(Homo.sapiens)
+  library(readr)
 
-gr <- GenomicRanges::GRanges(seqnames = chrp,start = start,end = end)
+  txdb <- TxDb(Homo.sapiens)
 
-suppressMessages(tg_df <-
-                   OrganismDbi::selectByRanges(
-                                  x = Homo.sapiens,
-                                  ranges = gr,
-                                  columns = c("SYMBOL", "TXNAME")) %>%
-                   as_tibble() %>%
-                   dplyr::select(tx_name = TXNAME, symbol = SYMBOL) %>%
-                   tidyr::unnest(cols = c(tx_name, symbol)))
+  chrp <- snakemake@params[[1]][["chrom"]]
+  stopifnot(!is.null(chrp))
 
-suppressMessages(gr.txdb <-
-                   crunch(txdb, which = gr) %>%
-                   as_tibble() %>%
-                   mutate(tx_name = as.character(tx_name)) %>%
-                   inner_join(tg_df) %>%
-                   plyranges::as_granges() %>%
-                   split(.$symbol))
+  start <- snakemake@params[[1]][["start"]]
+  stopifnot(!is.null(start))
+  start <- as.integer(start)
 
+  end <- snakemake@params[[1]][["end"]]
+  stopifnot(!is.null(end))
+  end <- as.integer(end)
 
-saveRDS(gr.txdb,snakemake@output[["outf"]])
+  gr <- GenomicRanges::GRanges(seqnames = chrp,ranges=IRanges::IRanges(start = start,end = end))
+
+  suppressMessages(tg_df <-
+                     OrganismDbi::selectByRanges(
+                                    x = Homo.sapiens,
+                                    ranges = gr,
+                                    columns = c("SYMBOL", "TXNAME")) %>%
+                     as_tibble() %>%
+                     dplyr::select(tx_name = TXNAME, symbol = SYMBOL) %>%
+                     tidyr::unnest(cols = c(tx_name, symbol)))
+
+  suppressMessages(gr.txdb <-
+                     crunch(txdb, which = gr) %>%
+                     as_tibble() %>%
+                     mutate(tx_name = as.character(tx_name)) %>%
+                     inner_join(tg_df) %>%
+                     plyranges::as_granges() %>%
+                     split(.$symbol))
+
+dplyr::as_tibble(tg_df) %>% distinct(symbol) %>% write_tsv(snakemake@output[["genelistf"]])
+saveRDS(unlist(gr.txdb),snakemake@output[["outputf"]])

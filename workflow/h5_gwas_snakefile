@@ -1,6 +1,6 @@
 rule ptb_gwas2h5:
     input:
-        inputf=config_d['GWAS']+"input/{gwas}.txt",
+        inputf=ancient(config_d['GWAS']+"input/{gwas}.txt"),
         paramf="../scripts/{gwas}cols.R"
     output:
         outputf=protected(config_d['GWAS'] +"{gwas}_gwas.h5")

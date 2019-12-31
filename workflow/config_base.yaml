@@ -3,14 +3,16 @@ flag_file: &hst !Host {options: {midway2: "/project2", gardner: "/gpfs/data/xhe-
 paths: 
   'DL': &dl  !Dep {host: *hst, pref:  null, path: { midway2: "/project2/xinhe/", gardner: "/gpfs/data/xhe-lab/", desktop: "/run/media/nwknoblauch/Data/"}}
   '1KG':     !Dep {host: *hst, pref: *dl, path: {midway2: &1kg "1kg/", gardner: *1kg , desktop: *1kg} }
+  'OBERF':    !Dep {host: *hst, pref: *dl, path: {midway2: "", gardner: 'Ober/'} }
   'BED':     !Dep {host: *hst, pref: *dl, path: {midway2: &bed "genomic_annotation/ptb_epigenetic/", gardner: *bed, desktop: "ptb_scratch/new_bed/"}}
   'L2':      !Dep {host: *hst, pref: *dl, path: {midway2: &l2 "genomic_annotation/L2/", gardner: *l2, desktop: "L2/"}}
-  'ANNO':    !Dep {host: *hst, pref: *dl, path: {midway2: "genomic_annotation/torus_annotations", gardner: "genomic_annotation/torus_annotations", desktop: "genomic_annotation/torus_annotations"}}
-  'FINEMAP': !Dep {host: *hst, pref: *dl, path: {midway2: "genomic_annotation/susie_finemapping", gardner: "genomic_annotation/susie_finemapping", desktop: "genomic_annotation/susie_finemapping"}}
+  'ANNO':    !Dep {host: *hst, pref: *dl, path: {midway2: "nwknoblauch/torus_annotations", gardner: "genomic_annotation/torus_annotations", desktop: "genomic_annotation/torus_annotations"}}
+  'FINEMAP': !Dep {host: *hst, pref: *dl, path: {midway2: "nwknoblauch/susie_finemapping", gardner: "genomic_annotation/susie_finemapping", desktop: "genomic_annotation/susie_finemapping"}}
   'WEIGHTS': !Dep {host: *hst, pref: *dl, path: {midway2: &weight "1kg/1000G_Phase3_weights_hm3_no_MHC/", gardner: *weight, desktop: *weight}} 
   'FRQF':    !Dep {host: *hst, pref: *dl, path: {midway2: &frq "1kg/1000G_Phase3_frq/", gardner: *frq, desktop: "1kg/1000G_Phase3_frq/"}} 
   'GWAS':    !Dep {host: *hst, pref: *dl, path: {midway2: &gwas "ptb/", gardner: *gwas, desktop: "gwas_data/gwas_sumstats/"}}
+  'LDSC':    !Dep {host: *hst, pref: null, path: {midway2: &ldsc "module load /home/nwknoblauch/spack_modules/ldsc/1.0.3; ", gardner: "/gpfs/data/xhe-lab/software/py-ldsc/bin/", desktop: ""}}
 envs:
   'r':    !Dep {host: *hst, pref:  null, path: { midway2: null, gardner: null, desktop: null }}
   'ldsc': !Dep {host: *hst, pref:  null, path: { midway2: null, gardner: null, desktop: "../envs/ldsc.yml" }}
-  'cmd_prefix': !Dep {host: *hst, pref:  null, path: { midway2: ". /project2/xinhe/software/ldsc/workflow/ldsc_env.sh; ", gardner: ". /gpfs/data/xhe-lab/software/ldsc/workflow/ldsc_env.sh;  ", desktop: "" }}
+  'cmd_prefix': !Dep {host: *hst, pref:  null, path: { midway2: "", gardner: "", desktop: "" }}

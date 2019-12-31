@@ -1,8 +1,15 @@
 import os
 import yaml
 from yaml import Loader
-from typing import Any,IO
+from typing import Any,IOn
+import json
+import re
 
+with open('../workflow/ldetect_ch.json') as json_file:
+  ldetect_data = json.load(json_file)
+
+
+regions=[614,15,356,373,353,973,512,181,363,362]
 
 
 def host_loader(loader: yaml.loader.Loader,node: yaml.Node) -> Any:
@@ -24,11 +31,8 @@ def dep_loader(loader: yaml.loader.Loader,node: yaml.Node) -> Any:
     full_path = pref+path[host] if pref is not None else path[host]
     return full_path
 
-
-
 yaml.Loader.add_constructor('!Host', host_loader)
 yaml.Loader.add_constructor('!Dep', dep_loader)
-
 
 
 with open("../workflow/config_base.yaml") as stream:
@@ -37,11 +41,11 @@ with open("../workflow/config_base.yaml") as stream:
 config_d = config['paths']
 config_e = config['envs']
 shell.prefix(config_e["cmd_prefix"])
-  # if config['flag_file']=="gardner":
-  #       shell.prefix("source ~/.bashrc; ")
-  # if config['flag_file']=="midway2":
-  #       shell.prefix(". /scratch/midway2/nwknoblauch/spack/share/spack/setup-env.sh; ")
 
+
+
+def anno_files(anno):
+  return expand(config_d['BED'] +"{anno_name}.bed",anno_name=anno)
 
 with open("../workflow/annots.yaml", 'r') as stream:
     all_annot = yaml.safe_load(stream)
@@ -49,17 +53,21 @@ with open("../workflow/annots.yaml", 'r') as stream:
 
 wildcard_constraints:
       chrom="\d+",
-      gwas="[fgdptb]+"
+      gwas="[fgdptb]+",
+      full_anno_name="[a-z]+",
+      new_base="[a-z]+",
+      region_id="\d+"
 
-localrules: all, get_hm3_snplist,get_plinkfiles,get_frq,get_weights
+localrules: all,get_hm3_snplist,get_plinkfiles,get_frq,get_weights,get_narrowpeak_aorta,get_narrowpeak_finte,get_narrowpeak_liver,prep_covars
 
-
+#include: "h5_gwas_snakefile"
 include: "dl_snakefile"
-include: "gwas_snakefile"
-#  include: "h5_gwas_snakefile"
+include: "eqtl_snakefile"
+#include: "gwas_snakefile"
+include: "plot_snakefile"
+include: "ldsc_snakefile" 
+
 
 rule all:
     input:
-        expand("torus_{gwas}_{full_anno_name}_fdr.RDS",gwas=["ptb","fgd"],full_anno_name=["allhic","targethic","baithic"]),
-        expand(config_d['1KG'] +"1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.rds",chrom=range(1,23)),
-        expand("aggregated/{gwas}_{anno_name}.RDS",gwas=["ptb","fgd"],anno_name=["allhic","targethic","baithic"])
+        expand("results/plot_data/genes/{region_id}.RDS",region_id=regions)

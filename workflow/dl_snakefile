@@ -34,6 +34,42 @@ rule get_hm3_snplist:
     shell:
         "wget https://data.broadinstitute.org/alkesgroup/LDSCORE/hapmap3_snps.tgz -O {output}"
 
+rule get_narrowpeak_aorta:
+    output:
+        config_d["BED"]+"chip-seq-reproducible-aorta-{mark}.bed.bz2"
+    params:
+        mark="{mark}"
+    shell:
+        "curl https://egg2.wustl.edu/roadmap/data/byFileType/peaks/consolidated/narrowPeak/E065-{params.mark}.narrowPeak.gz | gunzip -c | bzip2 -c > {output}"
+
+
+
+rule get_narrowpeak_finte:
+    output:
+        config_d["BED"]+"chip-seq-reproducible-finte-{mark}.bed.bz2"
+    params:
+        mark="{mark}"
+    shell:
+        "curl https://egg2.wustl.edu/roadmap/data/byFileType/peaks/consolidated/narrowPeak/E085-{params.mark}.narrowPeak.gz | gunzip -c | bzip2 -c > {output}"
+
+
+rule get_narrowpeak_liver:
+    output:
+        config_d["BED"]+"chip-seq-reproducible-liver-{mark}.bed.bz2"
+    params:
+        mark="{mark}"
+    shell:
+        "curl https://egg2.wustl.edu/roadmap/data/byFileType/peaks/consolidated/narrowPeak/E066-{params.mark}.narrowPeak.gz | gunzip -c | bzip2 -c > {output}"
+
+
+# rule get_broadpeak_aorta:
+#     output:
+#         config_d["BED"]+"chip-seq-reproducible-aorta-{mark}.bed.bz2"
+#     params:
+#         mark="{mark}"
+#     shell:
+#         "curl https://egg2.wustl.edu/roadmap/data/byFileType/peaks/consolidated/broadPeak/E065-{params.mark}.broadPeak.gz | gunzip -c | bzip2 -c > {output}"
+
 rule gunzip_hm3:
     input:
         rules.get_hm3_snplist.output
@@ -147,8 +183,6 @@ rule gunzip_baseline:
         L2=config_d['L2']
     shell:
         "tar -xvzf {input} -C {params.L2}/baseline"
-
-
 
 rule unzip_annot:
     input:

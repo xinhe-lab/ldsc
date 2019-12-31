@@ -1,71 +1,121 @@
 ---
-baseline_model: 
-  - Coding_UCSCL2
-  - Conserved_LindbladTohL2
-  - CTCF_HoffmanL2
-  - DGF_ENCODEL2
-  - DHS_peaks_TrynkaL2
-  - DHS_TrynkaL2
-  - Enhancer_AnderssonL2
-  - Enhancer_HoffmanL2
-  - FetalDHS_TrynkaL2
-  - H3K27ac_HniszL2
-  - H3K27ac_PGC2L2
-  - H3K4me1_peaks_TrynkaL2
-  - H3K4me1_TrynkaL2
-  - H3K4me3_peaks_TrynkaL2
-  - H3K4me3_TrynkaL2
-  - H3K9ac_peaks_TrynkaL2
-  - H3K9ac_TrynkaL2
-  - Intron_UCSCL2
-  - PromoterFlanking_HoffmanL2
-  - Promoter_UCSCL2
-  - Repressed_HoffmanL2
-  - SuperEnhancer_HniszL2
-  - TFBS_ENCODEL2
-  - Transcr_HoffmanL2
-  - TSS_HoffmanL2
-  - UTR_3_UCSCL2
-  - UTR_5_UCSCL2
-  - WeakEnhancer_HoffmanL2
-  - GERP.NSL2
-  - GERP.RSsup4L2
-  - MAFbin1L2
-  - MAFbin2L2
-  - MAFbin3L2
-  - MAFbin4L2
-  - MAFbin5L2
-  - MAFbin6L2
-  - MAFbin7L2
-  - MAFbin8L2
-  - MAFbin9L2
-  - MAFbin10L2
-  - MAF_Adj_Predicted_Allele_AgeL2
-  - MAF_Adj_LLD_AFRL2
-  - Recomb_Rate_10kbL2
-  - Nucleotide_Diversity_10kbL2
-  - Backgrd_Selection_StatL2
-  - CpG_Content_50kbL2
-  - MAF_Adj_ASMCL2
-  - GTEx_eQTL_MaxCPPL2
-  - BLUEPRINT_H3K27acQTL_MaxCPPL2
-  - BLUEPRINT_H3K4me1QTL_MaxCPPL2
-  - BLUEPRINT_DNA_methylation_MaxCPPL2
-  - synonymousL2
-  - non_synonymousL2
-  - Conserved_Vertebrate_phastCons46wayL2
-  - Conserved_Mammal_phastCons46wayL2
-  - Conserved_Primate_phastCons46wayL2
-  - BivFlnkL2
-  - Human_Promoter_VillarL2
-  - Human_Enhancer_VillarL2
-  - Ancient_Sequence_Age_Human_PromoterL2
-  - Ancient_Sequence_Age_Human_EnhancerL2
-  - Human_Enhancer_Villar_Species_Enhancer_CountL2
-  - Human_Promoter_Villar_ExACL2
+clean:
+  - base
+  - Coding_UCSC
+  - Conserved_LindbladToh
+  - Intron_UCSC
+  - PromoterFlanking_Hoffman
+  - Promoter_UCSC
+  - Transcr_Hoffman
+  - TSS_Hoffman
+  - UTR_3_UCSC
+  - UTR_5_UCSC
+  - GERP.NS
+  - GERP.RSsup4
+  - MAFbin1
+  - MAFbin2
+  - MAFbin3
+  - MAFbin4
+  - MAFbin5
+  - MAFbin6
+  - MAFbin7
+  - MAFbin8
+  - MAFbin9
+  - MAFbin10
+  - MAF_Adj_Predicted_Allele_Age
+  - MAF_Adj_LLD_AFR
+  - Recomb_Rate_10kb
+  - Nucleotide_Diversity_10kb
+  - Backgrd_Selection_Stat
+  - CpG_Content_50kb
+  - MAF_Adj_ASMC
+  - synonymous
+  - non_synonymous
+  - Conserved_Vertebrate_phastCons46way
+  - Conserved_Mammal_phastCons46way
+  - Conserved_Primate_phastCons46way
+  - BivFlnk
+full: 
+  - base
+  - Coding_UCSC
+  - Conserved_LindbladToh
+  - CTCF_Hoffman
+  - DGF_ENCODE
+  - DHS_peaks_Trynka
+  - DHS_Trynka
+  - Enhancer_Andersson
+  - Enhancer_Hoffman
+  - FetalDHS_Trynka
+  - H3K27ac_Hnisz
+  - H3K27ac_PGC2
+  - H3K4me1_peaks_Trynka
+  - H3K4me1_Trynka
+  - H3K4me3_peaks_Trynka
+  - H3K4me3_Trynka
+  - H3K9ac_peaks_Trynka
+  - H3K9ac_Trynka
+  - Intron_UCSC
+  - PromoterFlanking_Hoffman
+  - Promoter_UCSC
+  - Repressed_Hoffman
+  - SuperEnhancer_Hnisz
+  - TFBS_ENCODE
+  - Transcr_Hoffman
+  - TSS_Hoffman
+  - UTR_3_UCSC
+  - UTR_5_UCSC
+  - WeakEnhancer_Hoffman
+  - GERP.NS
+  - GERP.RSsup4
+  - MAFbin1
+  - MAFbin2
+  - MAFbin3
+  - MAFbin4
+  - MAFbin5
+  - MAFbin6
+  - MAFbin7
+  - MAFbin8
+  - MAFbin9
+  - MAFbin10
+  - MAF_Adj_Predicted_Allele_Age
+  - MAF_Adj_LLD_AFR
+  - Recomb_Rate_10kb
+  - Nucleotide_Diversity_10kb
+  - Backgrd_Selection_Stat
+  - CpG_Content_50kb
+  - MAF_Adj_ASMC
+  - GTEx_eQTL_MaxCPP
+  - BLUEPRINT_H3K27acQTL_MaxCPP
+  - BLUEPRINT_H3K4me1QTL_MaxCPP
+  - BLUEPRINT_DNA_methylation_MaxCPP
+  - synonymous
+  - non_synonymous
+  - Conserved_Vertebrate_phastCons46way
+  - Conserved_Mammal_phastCons46way
+  - Conserved_Primate_phastCons46way
+  - BivFlnk
+  - Human_Promoter_Villar
+  - Human_Enhancer_Villar
+  - Ancient_Sequence_Age_Human_Promoter
+  - Ancient_Sequence_Age_Human_Enhancer
+  - Human_Enhancer_Villar_Species_Enhancer_Count
+  - Human_Promoter_Villar_ExAC
 ptb_torus_model:
   allhic:
     - chip-seq-dec_diff-H3K27ac
+    - chip-seq-reproducible-ctr-H3K4me1
+    - hicd-seq-both-dec-HIC
+  treatedhic:
+    - chip-seq-reproducible-dec-H3K27ac
+    - chip-seq-reproducible-dec-H3K4me1
+    - hicd-seq-both-dec-HIC
+  utme3treatedhic:
+    - chip-seq-reproducible-ctr-H3K4me3
+    - chip-seq-reproducible-dec-H3K27ac
+    - chip-seq-reproducible-dec-H3K4me1
+    - hicd-seq-both-dec-HIC
+  untreatedhic:
+    - chip-seq-reproducible-ctr-H3K27ac
     - chip-seq-reproducible-ctr-H3K4me1
     - hicd-seq-both-dec-HIC
   targethic:
@@ -144,6 +194,16 @@ ptb_ldsc_model:
     - chip-seq-reproducible-ctr-H3K4me1
     - atac-seq-reproducible-dec-ATAC
     - atac-seq-reproducible-ctr-ATAC
+  reproducibledec:
+    - chip-seq-reproducible-dec-H3K4me3
+    - chip-seq-reproducible-dec-H3K27ac
+    - chip-seq-reproducible-dec-H3K4me1
+    - atac-seq-reproducible-dec-ATAC
+  reproduciblectr:
+    - chip-seq-reproducible-ctr-H3K4me3
+    - chip-seq-reproducible-ctr-H3K27ac
+    - chip-seq-reproducible-ctr-H3K4me1
+    - atac-seq-reproducible-ctr-ATAC
   reproducible_up_down:
     - chip-seq-reproducible-ctr-H3K4me3
     - chip-seq-reproducible-dec-H3K4me3
@@ -163,7 +223,7 @@ ptb_ldsc_model:
     - chip-seq-dec_down-H3K4me1
     - hicd-seq-bait-dec-HIC
     - hicd-seq-target-dec-HIC
-  reproducible_merged:
+  reproduciblemerged:
     - chip-seq-reproducible-ctr-H3K4me3
     - chip-seq-reproducible-dec-H3K4me3
     - chip-seq-reproducible-dec-H3K27ac
@@ -177,3 +237,78 @@ ptb_ldsc_model:
     - chip-seq-dec_diff-H3K27ac
     - chip-seq-dec_diff-H3K4me1
     - hicd-seq-both-dec-HIC
+  reproduciblenodiff:
+    - chip-seq-reproducible-ctr-H3K4me3
+    - chip-seq-reproducible-dec-H3K4me3
+    - chip-seq-reproducible-dec-H3K27ac
+    - chip-seq-reproducible-ctr-H3K27ac
+    - chip-seq-reproducible-dec-H3K4me1
+    - chip-seq-reproducible-ctr-H3K4me1
+    - atac-seq-reproducible-dec-ATAC
+    - atac-seq-reproducible-ctr-ATAC
+    - hicd-seq-both-dec-HIC
+  reproduciblenodiffcsmc:
+    - chip-seq-reproducible-ctr-H3K4me3
+    - chip-seq-reproducible-dec-H3K4me3
+    - chip-seq-reproducible-dec-H3K27ac
+    - chip-seq-reproducible-ctr-H3K27ac
+    - chip-seq-reproducible-dec-H3K4me1
+    - chip-seq-reproducible-ctr-H3K4me1
+    - atac-seq-reproducible-dec-ATAC
+    - atac-seq-reproducible-ctr-ATAC
+    - hicd-seq-both-dec-HIC
+    - peaks-cervical_smooth_muscle_cells
+  reproduciblenodiffaorta:
+    - chip-seq-reproducible-ctr-H3K4me3
+    - chip-seq-reproducible-dec-H3K4me3
+    - chip-seq-reproducible-dec-H3K27ac
+    - chip-seq-reproducible-ctr-H3K27ac
+    - chip-seq-reproducible-dec-H3K4me1
+    - chip-seq-reproducible-ctr-H3K4me1
+    - atac-seq-reproducible-dec-ATAC
+    - atac-seq-reproducible-ctr-ATAC
+    - hicd-seq-both-dec-HIC
+    - chip-seq-reproducible-aorta-H3K4me1
+    - chip-seq-reproducible-aorta-H3K4me3
+    - chip-seq-reproducible-aorta-H3K27ac
+  reproduciblenodifffinte:
+    - chip-seq-reproducible-ctr-H3K4me3
+    - chip-seq-reproducible-dec-H3K4me3
+    - chip-seq-reproducible-dec-H3K27ac
+    - chip-seq-reproducible-ctr-H3K27ac
+    - chip-seq-reproducible-dec-H3K4me1
+    - chip-seq-reproducible-ctr-H3K4me1
+    - atac-seq-reproducible-dec-ATAC
+    - atac-seq-reproducible-ctr-ATAC
+    - hicd-seq-both-dec-HIC
+    - chip-seq-reproducible-finte-H3K4me1
+    - chip-seq-reproducible-finte-H3K4me3
+    - chip-seq-reproducible-finte-H3K27ac
+  reproduciblenodiffliver:
+    - chip-seq-reproducible-ctr-H3K4me3
+    - chip-seq-reproducible-dec-H3K4me3
+    - chip-seq-reproducible-dec-H3K27ac
+    - chip-seq-reproducible-ctr-H3K27ac
+    - chip-seq-reproducible-dec-H3K4me1
+    - chip-seq-reproducible-ctr-H3K4me1
+    - atac-seq-reproducible-dec-ATAC
+    - atac-seq-reproducible-ctr-ATAC
+    - hicd-seq-both-dec-HIC
+    - chip-seq-reproducible-liver-H3K4me1
+    - chip-seq-reproducible-liver-H3K4me3
+    - chip-seq-reproducible-liver-H3K27ac
+  reproduciblemergedcsmc:
+    - chip-seq-reproducible-ctr-H3K4me3
+    - chip-seq-reproducible-dec-H3K4me3
+    - chip-seq-reproducible-dec-H3K27ac
+    - chip-seq-reproducible-ctr-H3K27ac
+    - chip-seq-reproducible-dec-H3K4me1
+    - chip-seq-reproducible-ctr-H3K4me1
+    - atac-seq-reproducible-dec-ATAC
+    - atac-seq-reproducible-ctr-ATAC
+    - atac-seq-dec_diff-ATAC
+    - chip-seq-dec_diff-H3K4me3
+    - chip-seq-dec_diff-H3K27ac
+    - chip-seq-dec_diff-H3K4me1
+    - hicd-seq-both-dec-HIC
+    - peaks-cervical_smooth_muscle_cells

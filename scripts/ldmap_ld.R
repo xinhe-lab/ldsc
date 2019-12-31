@@ -1,14 +1,46 @@
 source("renv/activate.R")
-library(bigsnpr)
-library(ldmap)
-library(dplyr)
-library(purrr)
-
-data(ldetect_EUR)
-rdsf <- snakemake@input[["rdslist"]]
-ld_id <- snakemake@params[["region"]]
-stopifnot(!is.null(ld_id),length(ld_id)==1)
-ld_id <- as.integer(ld_id)
-ldmr <- ldetect_EUR[ld_id]
-srds <- ldmap:::subset_rds(ldmr = ldmr,reference_files = rdsf,pattern = paste0(ld_id,"_"))
-saveRDS(panel_ld(srds,FALSE),snakemake@output[["ldf"]])
+  library(EigenH5)
+  library(ldmap)
+  library(dplyr)
+  library(purrr)
+  data(ldetect_EUR)
+  rdsf <- unlist(snakemake@input)
+  stopifnot(!is.null(rdsf),file.exists(rdsf))
+  ld_id <- snakemake@params[["region"]]
+  stopifnot(!is.null(ld_id),length(ld_id)==1)
+  ld_id <- as.integer(ld_id)
+  ldmr <- ldetect_EUR[ld_id]
+  init_fn <- function(reference_files,ldmr){
+    return(reference_files)
+  }
+  filter_map_fn <- function(reference_file, ldmr) {
+    dplyr::filter(read_df_h5(reference_file, "snp"), !is.na(snp_in_range(snp_struct,ldmr)))
+  }
+  filter_geno_fn <- function(reference_file,ldmr,map) {
+    read_matrix_h5v(reference_file,"dosage",j = map$index)
+  }
+  write_fn <- function(map,bsx,output_file) {
+    write_df_h5(map,output_file,"snp")
+    write_matrix_h5(bsx,output_file,"dosage")
+    return(output_file)
+  }
+  read_map_fn <- function(x) {
+    read_df_h5(x,"snp")
+  }
+  read_dosage_fn <- function(x,...) {
+    read_matrix_h5v(x,"dosage")
+  }
+  srds <- ldmap::subset_rds(ldmr = ldmr,
+                            reference_files = rdsf,
+                            output_file = snakemake@output[["ldf"]],
+                            init_fn = init_fn,
+                            filter_map_fn = filter_map_fn,
+                            filter_geno_fn = filter_geno_fn,
+                            write_fn =  write_fn)
+print(srds)
+retR <- panel_ld(srds,
+                           LDshrink = FALSE,
+                           read_map_fn = read_map_fn,
+                           read_dosage_fn = read_dosage_fn)
+attr(retR,"dimnames") <- NULL
+EigenH5::write_matrix_h5(retR,snakemake@output[["ldf"]],datapath="R")

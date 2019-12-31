@@ -1,0 +1,45 @@
+rule prep_covars:
+    input:
+        config_d['OBERF']+'covariates/AllColumnNames_final53_PC.txt.gz'
+    params:
+        HL = lambda wildcards: str(int(wildcards.PCN)+13)
+    output:
+        config_d['OBERF']+'covariates/covarlist_{PCN}.txt.gz'
+    shell:
+        "zcat {input} | head -n {params.HL} | gzip -c > {output}"
+
+
+
+rule run_fastqtl_gata2:
+    input:
+        vcf=config_d['OBERF']+'genotypes/new_chr3.dose.vcf.gz',
+        exp=config_d['OBERF']+'phenotypes/Final_GeneExprDetected.7.bed.gz',
+        cov=config_d['OBERF']+'covariates/covarlist_{PCN}.txt.gz',
+        samples=config_d['OBERF']+'samples.txt'
+    output:
+        outputf="fastqtl/GATA2_{PCN}.txt"
+    shell:
+        "/gpfs/data/xhe-lab/software/spack/opt/spack/linux-rhel6-haswell/gcc-9.2.0/yesterdayqtl-master-wpcshqtonksv576xlubn5bejtx3vm5ci/bin/fastqtl --vcf {input.vcf} --bed {input.exp} --cov {input.cov} --out {output} -R 3:128194861-130244735 --include-samples {input.samples} "
+
+
+rule run_fastqtl_hand2:
+    input:
+        vcf=config_d['OBERF']+'genotypes/new_chr4.dose.vcf.gz',
+        exp=config_d['OBERF']+'phenotypes/Final_GeneExprDetected.7.bed.gz',
+        cov=config_d['OBERF']+'covariates/covarlist_{PCN}.txt.gz',
+        samples=config_d['OBERF']+'samples.txt'
+    output:
+        outputf="fastqtl/HAND2_{PCN}.txt"
+    shell:
+        "/gpfs/data/xhe-lab/software/spack/opt/spack/linux-rhel6-haswell/gcc-9.2.0/yesterdayqtl-master-wpcshqtonksv576xlubn5bejtx3vm5ci/bin/fastqtl --vcf {input.vcf} --bed {input.exp} --cov {input.cov} --out {output} -R 4:174264132-176570716 --include-samples {input.samples}"
+
+rule gwas_h52torus:
+    input:
+        inputf=config_d['GENO']
+        snplist = expand(config_d['1KG'] +"1000G_EUR_Phase3_plink/1000G.EUR.QC.{chrom}.bim",chrom=range(1,23))
+    output:
+        outputf=config_d['GWAS'] +"{gwas}_torus.txt.gz"
+    conda:
+        config_e['r']
+    script:
+        "../scripts/gen_torus_sumstats.R"
