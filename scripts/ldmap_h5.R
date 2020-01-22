@@ -1,4 +1,4 @@
-source("renv/activate.R")
+#source("renv/activate.R")
 library(bigsnpr)
 library(fs)
 library(EigenH5)

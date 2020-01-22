@@ -1,0 +1,161 @@
+#+BEGIN_SRC shell :dir /ssh:gardner:/gpfs/data/xhe-lab/software/ldsc/workflow
+qstat -n1 | tail -1 |  awk '{print $NF}' | sed -r 's/(.+)\/.+/\1/'
+#+END_SRC
+
+#+RESULTS:
+: cri16cn088
+
+
+#+BEGIN_SRC shell :session sess :results output verbatim :dir /ssh:gardner|ssh:cri16cn088:/gpfs/data/xhe-lab/software/ldsc/workflow
+
+#+END_SRC
+
+#+BEGIN_SRC shell :session sess :results output verbatim :dir /ssh:gardner|ssh:cri16cn088:/gpfs/data/xhe-lab/software/ldsc/workflow
+
+. /gpfs/data/xhe-lab/software/spack/share/spack/setup-env.sh
+spack load python@3.7.4
+spack load py-jupyter-client@5.3.4
+spack load py-setuptools
+spack load r
+spack load r-pbdzmq
+spack load r-irkernel
+
+#+END_SRC
+
+#+BEGIN_SRC shell :session sess :results output verbatim :dir /ssh:gardner|ssh:cri16cn088:/gpfs/data/xhe-lab/software/ldsc/workflow
+jupyter kernel --debug --kernel=ir &
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Run a kernel locally in a subprocess
+
+Options
+-------
+
+Arguments that take values are actually convenience aliases to full
+Configurables, whose aliases are listed on the help line. For more information
+on full configurables, see '--help-all'.
+
+--debug
+    set log level to logging.DEBUG (maximize logging output)
+(KernelApp.kernel_name)
+    Default: 'python3'
+    The name of a kernel type to start
+(KernelManager.ip)
+    Default: ''
+    Set the kernel's IP address [default localhost]. If the IP address is
+    something other than localhost, then Consoles on other machines will be able
+    to connect to the Kernel, so be careful!
+
+Class parameters
+----------------
+
+Parameters are set from command-line arguments of the form:
+`--Class.trait=value`. This line is evaluated in Python, so simple expressions
+are allowed, e.g.:: `--C.a='range(3)'` For setting C.a=[0,1,2].
+
+KernelApp options
+-----------------
+Default: False
+    Answer yes to any prompts.
+Default: ''
+    Full path of a config file.
+Default: ''
+    Specify a config file to load.
+Default: False
+    Generate default config file.
+Default: 'python3'
+    The name of a kernel type to start
+
+Y-%m-%d %H:%M:%S'
+(asctime)s
+
+(name)s]%(highlevel)s %(message)s'
+    The Logging format template
+Default: 30
+    Choices: (0, 10, 20, 30, 40, 50, 'DEBUG', 'INFO', 'WARN', 'ERROR', 'CRITICAL')
+    Set the log level by value or name.
+
+KernelManager options
+---------------------
+Default: True
+    Should we autorestart the kernel if it dies.
+Default: ''
+.json]
+    This file will contain the IP, ports, and authentication key needed to
+    connect clients to this kernel. By default, this file will be created in the
+    security dir of the current profile, but can be specified by absolute path.
+Default: 0
+    set the control (ROUTER) port [default: random]
+Default: 0
+    set the heartbeat port [default: random]
+Default: 0
+    set the iopub (PUB) port [default: random]
+Default: ''
+    Set the kernel's IP address [default localhost]. If the IP address is
+    something other than localhost, then Consoles on other machines will be able
+    to connect to the Kernel, so be careful!
+Default: []
+    DEPRECATED: Use kernel_name instead.
+    The Popen Command to launch the kernel. Override this if you have a custom
+    kernel. If kernel_cmd is specified in a configuration file, Jupyter does not
+    pass any arguments to the kernel, because it cannot make any assumptions
+    about the arguments that the kernel understands. In particular, this means
+    that the kernel does not receive the option --debug if it given on the
+    Jupyter command line.
+Default: 0
+    set the shell (ROUTER) port [default: random]
+Default: 5.0
+    Time to wait for a kernel to terminate before killing it, in seconds.
+Default: 0
+    set the stdin (ROUTER) port [default: random]
+Default: 'tcp'
+    Choices: ['tcp', 'ipc']
+
+KernelSpecManager options
+-------------------------
+Default: True
+    If there is no Python kernelspec registered and the IPython kernel is
+    available, ensure it is added to the spec list.
+Default: 'jupyter_client.kernelspec.KernelSpec'
+    The kernel spec class.  This is configurable to allow subclassing of the
+    KernelSpecManager for customized behavior.
+Default: set()
+    Whitelist of allowed kernel names.
+    By default, all installed kernels are allowed.
+#+end_example
+
+#+BEGIN_SRC jupyter-python :session /home/nwknoblauch/tmp/kernel-f051dccc-cdbe-49a6-867f-1a2e0a9abdef.json
+import os
+print('hello world')
+#+END_SRC
+
+#+RESULTS:
+: Available kernels:
+:   ir         /home/t.cri.nknoblauch/.local/share/jupyter/kernels/ir
+:   python3    /gpfs/data/xhe-lab/software/spack/opt/spack/linux-rhel6-haswell/gcc-9.2.0/python-3.7.4-z25incvfxtxk7k2pvp6ucjyc4m47ka7q/share/jupyter/kernels/python3
+
+#+BEGIN_SRC shell :session sess :results output verbatim :dir /ssh:gardner|ssh:cri16cn088:/gpfs/data/xhe-lab/software/ldsc/workflow
+spack load r-irkernel
+#+END_SRC
+
+#+BEGIN_SRC shell :session sess :results output verbatim :dir /ssh:gardner|ssh:cri16cn088:/gpfs/data/xhe-lab/software/ldsc/workflow
+spack load r
+which R
+
+
+
+#+BEGIN_SRC jupyter-python :session /ssh:gardner|ssh:cri16cn077:/home/t.cri.nknoblauch/.local/share/jupyter/runtime/kernel-851e84b3-d311-48ea-bac9-c51c85d19e5d.json
+  import os
+  import yaml
+  from yaml import Loader
+  import json
+  import re
+  with open('/gpfs/data/xhe-lab/software/ldsc/workflow/ldetect_ch.json') as json_file:
+      ldetect_data = json.load(json_file)
+
+  print(ldetect_data[0])
+#+end_src
+
+#+RESULTS:

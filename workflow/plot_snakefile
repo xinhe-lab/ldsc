@@ -26,7 +26,7 @@ def anno_plot_fun(wildcards):
     print(annol)
     annok = [x for x in annol if not hicm.match(x)]
     ret_dict = {
-        'annof' : anno_files(annok)
+        'annof' : anno_files(annok )
     }
     return ret_dict
 

@@ -1,7 +1,6 @@
-source("renv/activate.R")
+#  #source("renv/activate.R")
   library(stringr)
   library(Homo.sapiens)
-
   library(RColorBrewer)
 
   library(purrr)
@@ -42,5 +41,5 @@ source("renv/activate.R")
                      plyranges::as_granges() %>%
                      split(.$symbol))
 
-dplyr::as_tibble(tg_df) %>% distinct(symbol) %>% write_tsv(snakemake@output[["genelistf"]])
-saveRDS(unlist(gr.txdb),snakemake@output[["outputf"]])
+  dplyr::as_tibble(tg_df) %>% distinct(symbol) %>% write_tsv(snakemake@output[["genelistf"]])
+  saveRDS(unlist(gr.txdb),snakemake@output[["outputf"]])

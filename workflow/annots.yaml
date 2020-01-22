@@ -109,6 +109,20 @@ ptb_torus_model:
     - chip-seq-reproducible-dec-H3K27ac
     - chip-seq-reproducible-dec-H3K4me1
     - hicd-seq-both-dec-HIC
+  reproduciblemerged:
+    - chip-seq-reproducible-ctr-H3K4me3
+    - chip-seq-reproducible-dec-H3K4me3
+    - chip-seq-reproducible-dec-H3K27ac
+    - chip-seq-reproducible-ctr-H3K27ac
+    - chip-seq-reproducible-dec-H3K4me1
+    - chip-seq-reproducible-ctr-H3K4me1
+    - atac-seq-reproducible-dec-ATAC
+    - atac-seq-reproducible-ctr-ATAC
+    - atac-seq-dec_diff-ATAC
+    - chip-seq-dec_diff-H3K4me3
+    - chip-seq-dec_diff-H3K27ac
+    - chip-seq-dec_diff-H3K4me1
+    - hicd-seq-both-dec-HIC
   utme3treatedhic:
     - chip-seq-reproducible-ctr-H3K4me3
     - chip-seq-reproducible-dec-H3K27ac

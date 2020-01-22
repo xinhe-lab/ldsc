@@ -1,4 +1,4 @@
-source("renv/activate.R")
+#source("renv/activate.R")
   library(EigenH5)
   library(ldmap)
   library(dplyr)
