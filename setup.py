@@ -1,23 +1,20 @@
-import setuptools
+from setuptools import setup
 
-with open("README.md", "r") as fh:
-    long_description = fh.read()
-
-setuptools.setup(
-    name="ldsc",  # Replace with your own username
-    version="1.0.3",
-    author="Bulik-Sullivan",
-    author_email="author@example.com",
-    description="LD Score Regression",
-    long_description=long_description,
-    long_description_content_type="text/markdown",
-    url="https://github.com/xinhe-lab/ldsc",
-    packages=setuptools.find_packages(),
-    scripts=['ldsc.py', 'make_annot.py', 'munge_sumstats.py'],
-    classifiers=[
-        "Programming Language :: Python :: 2",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
-    ],
-    python_requires='<3',
+setup(name='ldsc',
+      version='1.0.4',
+      description='LD Score Regression (LDSC)',
+      url='http://github.com/bulik/ldsc',
+      author='Brendan Bulik-Sullivan and Hilary Finucane',
+      author_email='',
+      license='GPLv3',
+      packages=['ldscore'],
+      scripts=['ldsc.py', 'munge_sumstats.py'],
+      install_requires = [
+            'bitarray>=0.8,<0.9',
+            'nose>=1.3,<1.4',
+            'pybedtools>=0.7,<0.8',
+            'scipy>=0.18,<0.19',
+            'numpy>=1.10,<1.11',
+            'pandas>=0.20,<0.21'
+      ]
 )
