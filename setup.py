@@ -1,14 +1,14 @@
 from setuptools import setup
 
 setup(name='ldsc',
-      version='1.0.4',
+      version='1.0.5',
       description='LD Score Regression (LDSC)',
       url='http://github.com/bulik/ldsc',
       author='Brendan Bulik-Sullivan and Hilary Finucane',
       author_email='',
       license='GPLv3',
       packages=['ldscore'],
-      scripts=['ldsc.py', 'munge_sumstats.py'],
+      scripts=['ldsc.py', 'munge_sumstats.py', 'make_annot.py'],
       install_requires = [
             'bitarray>=0.8,<0.9',
             'nose>=1.3,<1.4',
